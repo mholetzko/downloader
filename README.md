@@ -21,4 +21,4 @@ See the [INSTALLATION_GUIDE.md](electron-app/INSTALLATION_GUIDE.md) for setup an
 
 ## License
 
-MIT License 
+MIT License # Test pipeline with new api structure
