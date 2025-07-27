@@ -9,9 +9,10 @@ async function setupFFmpeg() {
   const arch = process.arch;
   
   console.log(`Setting up FFmpeg for ${platform} ${arch}...`);
+  console.log(`Architecture: ${arch} (${arch === 'x64' ? 'Intel x86_64' : arch === 'arm64' ? 'Apple Silicon' : 'Unknown'})`);
   
-  // Create ffmpeg directory
-  const ffmpegDir = path.join(__dirname, '..', 'ffmpeg');
+  // Create ffmpeg directory in api folder (where the API server expects it)
+  const ffmpegDir = path.join(__dirname, '..', 'api', 'ffmpeg');
   if (!fs.existsSync(ffmpegDir)) {
     fs.mkdirSync(ffmpegDir, { recursive: true });
   }

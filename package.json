@@ -58,7 +58,7 @@
         "to": "api"
       },
       {
-        "from": "ffmpeg",
+        "from": "api/ffmpeg",
         "to": "ffmpeg"
       },
       {
