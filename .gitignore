@@ -160,3 +160,4 @@ $TEMP_DIR/
 # FFmpeg (bundled during build)
 ffmpeg/
 ffmpeg-archive.zip
+api/ffmpeg
