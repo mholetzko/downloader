@@ -56,6 +56,9 @@ cd downloader/electron-app
 npm install
 pip install -r api/requirements.txt
 
+# Download FFmpeg (automatically done during build)
+npm run download-ffmpeg
+
 # Start development
 npm run dev
 ```
@@ -74,7 +77,6 @@ npm run dev
 - ✅ **Music videos**
 - ✅ **Audio-only content**
 - ✅ **Playlists** (coming soon)
-- ✅ **High quality audio**
 
 ### Spotify
 - ✅ **Individual tracks**
@@ -85,7 +87,6 @@ npm run dev
 ### SoundCloud
 - ✅ **Public tracks**
 - ✅ **Public playlists**
-- ✅ **High quality audio**
 - ⚠️ **Public content only**
 
 ## 📁 File Organization
@@ -157,7 +158,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-This project combines multiple **legal, open-source tools** into a single, user-friendly interface for educational and personal convenience purposes:
+This project combines multiple **existing, open-source tools** into a single, user-friendly interface for educational and personal convenience purposes:
 
 - **yt-dlp** - YouTube downloading engine (Unlicense)
 - **spotdl** - Spotify downloading library (MIT License)
@@ -166,7 +167,7 @@ This project combines multiple **legal, open-source tools** into a single, user-
 - **Electron** - Cross-platform desktop framework (MIT License)
 - **FastAPI** - Modern Python web framework (MIT License)
 
-**Important Legal Note**: This project is designed to provide a unified interface for existing, **legal** downloading tools. It does not add any new downloading capabilities beyond what these tools already provide. All underlying tools are open-source and designed for legitimate use cases. Users must ensure their use complies with applicable laws and platform terms of service.
+**Important Legal Note**: This project is designed to provide a unified interface for existing downloading tools. It does not add any new downloading capabilities beyond what these tools already provide. All underlying tools are open-source and designed for legitimate use cases. Users must ensure their use complies with applicable laws and platform terms of service.
 
 
 ## ⚖️ Legal Disclaimer & Terms of Use
@@ -188,7 +189,7 @@ By using this software, you agree to:
 This software is designed for:
 - **Personal use only** - Download content you have legal access to
 - **Educational purposes** - Learn about music downloading technologies
-- **Convenience** - Merge multiple legal downloader tools into one interface
+- **Convenience** - Merge multiple downloader tools into one interface
 - **Local processing** - All downloads happen on your device
 - **Content you own** - Download your own content from platforms
 - **Public domain content** - Download freely available content

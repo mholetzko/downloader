@@ -30,6 +30,11 @@ jobs:
           brew install ffmpeg
       - name: Install npm dependencies
         run: npm install
+        
+      - name: Download FFmpeg
+        run: npm run download-ffmpeg
+        
+      - name: Get version from package.json
       - name: Create Python virtual environment
         run: |
           python3 -m venv venv

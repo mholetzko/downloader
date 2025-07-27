@@ -156,3 +156,7 @@ $APP_DIR/Frameworks/
 $APP_DIR/
 $RESOURCES_DIR/
 $TEMP_DIR/
+
+# FFmpeg (bundled during build)
+ffmpeg/
+ffmpeg-archive.zip
