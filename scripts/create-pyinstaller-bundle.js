@@ -18,7 +18,7 @@ async function createPyInstallerBundle() {
 block_cipher = None
 
 a = Analysis(
-    ['api_server.py'],
+    ['api/api_server.py'],
     pathex=[],
     binaries=[
         ('ffmpeg/ffmpeg', 'ffmpeg'),
@@ -27,8 +27,8 @@ a = Analysis(
         ('venv/bin/scdl', 'scdl'),
     ],
     datas=[
-        ('database.py', '.'),
-        ('requirements.txt', '.'),
+        ('api/database.py', '.'),
+        ('api/requirements.txt', '.'),
     ],
     hiddenimports=[
         'uvicorn.logging',

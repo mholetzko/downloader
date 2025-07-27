@@ -1,70 +1,57 @@
 #!/bin/bash
 
-echo "=== bB-downloader Debug Setup ==="
-
 # Check if we're in the right directory
-if [ ! -f "api_server.py" ]; then
-    echo "Error: api_server.py not found. Please run this script from the electron-app directory."
+if [ ! -f "api/api_server.py" ]; then
+    echo "Error: api/api_server.py not found. Please run this script from the electron-app directory."
     exit 1
 fi
 
-echo "1. Checking Python virtual environment..."
+echo "🔧 Setting up debug environment for bB Downloader..."
+
+# Check if Python is installed
+if ! command -v python3 &> /dev/null; then
+    echo "❌ Python 3 is not installed. Please install Python 3.11 or later."
+    exit 1
+fi
+
+# Check if Node.js is installed
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js is not installed. Please install Node.js 18 or later."
+    exit 1
+fi
+
+# Create virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
+    echo "📦 Creating Python virtual environment..."
     python3 -m venv venv
 fi
 
-echo "2. Activating virtual environment..."
+# Activate virtual environment
+echo "🔧 Activating virtual environment..."
 source venv/bin/activate
 
-echo "3. Installing dependencies..."
-pip install -r requirements.txt
+# Install Python dependencies
+echo "📦 Installing Python dependencies..."
+pip install --upgrade pip
+pip install -r api/requirements.txt
 
-echo "4. Checking if yt-dlp is available..."
-if command -v yt-dlp &> /dev/null; then
-    echo "✓ yt-dlp is available"
-else
-    echo "✗ yt-dlp not found in PATH"
-    echo "Installing yt-dlp..."
-    pip install yt-dlp
+# Install Node.js dependencies
+echo "📦 Installing Node.js dependencies..."
+npm install
+
+# Download FFmpeg if not present
+if [ ! -f "ffmpeg/ffmpeg" ]; then
+    echo "📥 Downloading FFmpeg..."
+    npm run download-ffmpeg
 fi
 
-echo "5. Checking if spotdl is available..."
-if command -v spotdl &> /dev/null; then
-    echo "✓ spotdl is available"
-else
-    echo "✗ spotdl not found in PATH"
-    echo "Installing spotdl..."
-    pip install spotdl
-fi
-
-echo "6. Checking if scdl is available..."
-if command -v scdl &> /dev/null; then
-    echo "✓ scdl is available"
-else
-    echo "✗ scdl not found in PATH"
-    echo "Installing scdl..."
-    pip install scdl
-fi
-
-echo "7. Testing API server startup..."
-echo "Starting API server in background..."
-python api_server.py &
-API_PID=$!
-
-# Wait for server to start
-sleep 3
-
-echo "8. Testing API endpoints..."
-python test_api.py
-
-echo "9. Stopping API server..."
-kill $API_PID 2>/dev/null
-
-echo "=== Debug setup completed ==="
+echo "✅ Setup complete!"
 echo ""
-echo "If the test passed, the API server should work correctly."
-echo "If there were errors, check the output above for issues."
+echo "🚀 To start the application in development mode:"
+echo "   npm run dev"
 echo ""
-echo "To start the Electron app:"
-echo "npm start" 
+echo "🔧 To start just the API server:"
+echo "   python api/api_server.py"
+echo ""
+echo "🌐 To start just the Electron app:"
+echo "   npm start" 

@@ -28,7 +28,7 @@ This script will:
 **Solutions**:
 - Make sure you're in the `electron-app` directory when running the app
 - Check that the virtual environment exists: `ls venv/`
-- Reinstall dependencies: `pip install -r requirements.txt`
+- Reinstall dependencies: `pip install -r api/requirements.txt`
 - Check Python version: `python --version` (should be 3.7+)
 
 #### Issue: Missing Download Tools
@@ -64,7 +64,7 @@ If the debug script passes but the app still freezes, try manual testing:
 ```bash
 cd electron-app
 source venv/bin/activate
-python api_server.py
+python api/api_server.py
 ```
 
 2. In another terminal, test the API:

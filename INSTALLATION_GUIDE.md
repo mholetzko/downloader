@@ -34,7 +34,7 @@ pip install fastapi uvicorn yt-dlp spotdl scdl python-multipart pydantic python-
 ### **Running the App:**
 ```bash
 # Start the API server
-python api_server.py
+python api/api_server.py
 
 # In another terminal, start the Electron app
 npm start
@@ -47,58 +47,8 @@ If you want to create your own self-contained installer:
 ```bash
 # Install all dependencies
 npm install
-pip install -r requirements.txt
+pip install -r api/requirements.txt
 
 # Create the complete installer
 npm run installer
 ```
-
-This will create:
-- `dist/bB-Downloader-Installer.dmg` - DMG installer
-- `dist/install-complete.sh` - Command line installer
-
-## 📋 **What's Included in the Self-Contained Installer**
-
-✅ **Python 3.11** - Embedded Python runtime  
-✅ **All Python Dependencies** - FastAPI, yt-dlp, spotdl, scdl, etc.  
-✅ **FFmpeg** - Audio processing  
-✅ **Electron App** - Desktop interface  
-✅ **Database** - SQLite for download tracking  
-✅ **Launcher Scripts** - Easy startup  
-
-## 🎯 **System Requirements**
-
-- **macOS 10.15+** (Catalina or later)
-- **4GB RAM** minimum
-- **500MB** disk space
-- **Internet connection** for downloads
-
-## 🔍 **Troubleshooting**
-
-### **App won't start:**
-1. Check if the app is in Applications folder
-2. Right-click and select "Open" (bypasses Gatekeeper)
-3. Check Console.app for error messages
-
-### **Downloads not working:**
-1. Ensure you have internet connection
-2. Check if the API server is running (should start automatically)
-3. Try restarting the app
-
-### **Permission errors:**
-```bash
-# Fix permissions
-sudo chmod +x "/Applications/bB Downloader.app/Contents/Resources/start.sh"
-```
-
-## 📞 **Support**
-
-If you encounter issues:
-1. Check the troubleshooting section above
-2. Look for error messages in Console.app
-3. Try the manual installation method
-4. Report issues with system information and error logs
-
----
-
-**Enjoy downloading your music! 🎵** 

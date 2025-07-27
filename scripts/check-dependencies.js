@@ -12,9 +12,9 @@ const requiredTools = [
 ];
 
 const requiredFiles = [
-  'api_server.py',
-  'database.py',
-  'requirements.txt',
+  'api/api_server.py',
+  'api/database.py',
+  'api/requirements.txt',
   'ffmpeg/ffmpeg'
 ];
 
@@ -47,7 +47,7 @@ for (const file of requiredFiles) {
 // Check Python dependencies
 console.log('\n🐍 Checking Python dependencies:');
 try {
-  const requirements = fs.readFileSync('requirements.txt', 'utf8');
+  const requirements = fs.readFileSync('api/requirements.txt', 'utf8');
   const packages = requirements.split('\n').filter(line => line.trim() && !line.startsWith('#'));
   
   // Some packages have different import names
@@ -79,7 +79,7 @@ if (!allGood) {
   console.log('\n🚨 DEPENDENCY CHECK FAILED!');
   console.log('Please install all missing dependencies before packaging.');
   console.log('\nTo install Python dependencies:');
-  console.log('  pip install -r requirements.txt');
+  console.log('  pip install -r api/requirements.txt');
   console.log('\nTo install tools:');
   console.log('  pip install yt-dlp spotdl scdl');
   console.log('  # ffmpeg should be installed via your system package manager');

@@ -37,43 +37,41 @@ async function createBundle() {
       fs.renameSync(path.join(BUNDLE_DIR, 'usr/local/bin'), pythonBundlePath);
     }
 
-    console.log('📋 Step 3: Installing Python dependencies...');
-    
-    // Create virtual environment in bundle
+    // Install Python dependencies
+    console.log('📦 Step 2: Installing Python dependencies...');
     const venvPath = path.join(BUNDLE_DIR, 'venv');
-    execSync(`${pythonBundlePath}/python3 -m venv "${venvPath}"`, { stdio: 'inherit' });
-    
-    // Install requirements
     const pipPath = path.join(venvPath, 'bin', 'pip');
-    execSync(`${pipPath} install --upgrade pip`, { stdio: 'inherit' });
-    execSync(`${pipPath} install -r requirements.txt`, { stdio: 'inherit' });
-    execSync(`${pipPath} install scdl`, { stdio: 'inherit' });
+    execSync(`${pipPath} install -r api/requirements.txt`, { stdio: 'inherit' });
 
-    console.log('🔧 Step 4: Creating launcher script...');
-    
     // Create launcher script
-    const launcherScript = `#!/bin/bash
-# bB Downloader Launcher
-SCRIPT_DIR="\\$(cd "\\$(dirname "\\${BASH_SOURCE[0]}")" && pwd)"
-export PATH="\\$SCRIPT_DIR/python:\\$PATH"
-export PYTHONPATH="\\$SCRIPT_DIR/venv/lib/python3.11/site-packages"
-"\\$SCRIPT_DIR/venv/bin/python" "\\$SCRIPT_DIR/api_server.py"
-`;
+    console.log('📝 Step 3: Creating launcher script...');
     
-    fs.writeFileSync(path.join(BUNDLE_DIR, 'launcher.sh'), launcherScript);
-    execSync(`chmod +x "${BUNDLE_DIR}/launcher.sh"`, { stdio: 'inherit' });
+    const launcherContent = `#!/bin/bash
+SCRIPT_DIR="\\$(dirname "\\$0")"
+cd "\\$SCRIPT_DIR"
 
-    console.log('📁 Step 5: Copying application files...');
-    
-    // Copy application files
-    const filesToCopy = [
-      'api_server.py',
-      'database.py',
-      'requirements.txt',
+# Activate virtual environment and start API server
+"\\$SCRIPT_DIR/venv/bin/python" "\\$SCRIPT_DIR/api/api_server.py"
+`;
+
+    // Create start script
+    const startContent = `#!/bin/bash
+SCRIPT_DIR="\\$(dirname "\\$0")"
+cd "\\$SCRIPT_DIR"
+
+# Start API server
+python "\\$SCRIPT_DIR/api/api_server.py"
+`;
+
+    // Copy Python files
+    const pythonFiles = [
+      'api/api_server.py',
+      'api/database.py',
+      'api/requirements.txt',
       'ffmpeg'
     ];
     
-    filesToCopy.forEach(file => {
+    pythonFiles.forEach(file => {
       if (fs.existsSync(file)) {
         if (fs.statSync(file).isDirectory()) {
           execSync(`cp -r "${file}" "${BUNDLE_DIR}/"`, { stdio: 'inherit' });

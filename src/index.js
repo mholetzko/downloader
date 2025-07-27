@@ -42,7 +42,7 @@ function startApiServer() {
     if (isDev) {
         // Development mode - use local files
         const resourcePath = __dirname;
-        apiServerPath = path.join(resourcePath, '..', 'api_server.py');
+        apiServerPath = path.join(resourcePath, '..', 'api', 'api_server.py');
         pythonPath = path.join(resourcePath, '..', 'venv', 'bin', 'python');
         
         console.log('Development mode - Resource path:', resourcePath);

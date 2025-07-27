@@ -36,7 +36,7 @@ source venv/bin/activate
 
 # Install Python dependencies
 echo "📦 Installing Python dependencies..."
-pip install -r requirements.txt
+pip install -r api/requirements.txt
 
 if [ $? -eq 0 ]; then
     echo "✅ Python dependencies installed successfully!"
