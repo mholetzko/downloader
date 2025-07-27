@@ -4,7 +4,7 @@
 
 > ⚠️ **LEGAL WARNING**: This software is for educational and personal convenience only. Users are solely responsible for complying with all applicable copyright laws and regulations. The developers are not liable for any illegal use of this tool.
 
-A beautiful, privacy-focused desktop application that lets you download high-quality MP3 files from your favorite music platforms. Built with modern technologies and designed for simplicity.
+A beautiful, privacy-focused desktop application that lets you download MP3 files from your favorite music platforms. Built with modern technologies and designed for simplicity.
 
 ![bB Downloader Main Interface](docs/main-ui.png)
 
