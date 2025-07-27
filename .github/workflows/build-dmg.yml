@@ -1,8 +1,11 @@
-name: Build DMG (macOS)
+name: Build DMG (Development)
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/release.yml'
   workflow_dispatch:
 
 jobs:
@@ -26,19 +29,16 @@ jobs:
         run: |
           brew install ffmpeg
       - name: Install npm dependencies
-        run: |
-          cd electron-app
-          npm install
+        run: npm install
       - name: Build Python backend
         run: |
           source venv/bin/activate || python3 -m venv venv && source venv/bin/activate
           npm run bundle-python
       - name: Build Electron app (DMG)
         run: |
-          cd electron-app
           npm run make -- --arch ${{ matrix.arch }}
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bB-downloader-dmg-${{ matrix.arch }}
-          path: electron-app/out/*.dmg 
+          name: bB-downloader-dev-${{ matrix.arch }}
+          path: out/*.dmg 
