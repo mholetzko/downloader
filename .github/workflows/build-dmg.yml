@@ -42,7 +42,7 @@ jobs:
           npm run bundle-python
       - name: Build Electron app (DMG)
         run: |
-          npm run dist -- --mac --${{ matrix.arch }}
+          npm run dist -- --mac --${{ matrix.arch }} --publish never
       - name: List build outputs
         run: |
           echo "Build outputs:"
