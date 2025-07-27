@@ -8,57 +8,6 @@ A beautiful, privacy-focused desktop application that lets you download high-qua
 
 ![Music Downloader Main Interface](docs/main-ui.png)
 
-## ⚖️ Legal Disclaimer & Terms of Use
-
-**⚠️ IMPORTANT: READ THIS SECTION CAREFULLY BEFORE USING THIS SOFTWARE**
-
-### 🚨 **DISCLAIMER OF LIABILITY**
-**THE DEVELOPERS OF THIS SOFTWARE ARE NOT RESPONSIBLE FOR ANY ILLEGAL USE OF THIS TOOL. USERS ARE SOLELY RESPONSIBLE FOR COMPLYING WITH ALL APPLICABLE LAWS AND COPYRIGHT REGULATIONS.**
-
-### 📋 **LEGAL TERMS OF USE**
-By using this software, you agree to:
-- **Use this tool only for legal purposes**
-- **Download only content you have explicit permission to access**
-- **Comply with all applicable copyright laws and regulations**
-- **Not use this tool to circumvent any DRM or copyright protections**
-- **Accept full responsibility for your actions**
-
-### 🎯 **INTENDED LEGAL USE ONLY**
-This software is designed for:
-- **Personal use only** - Download content you have legal access to
-- **Educational purposes** - Learn about music downloading technologies
-- **Convenience** - Merge multiple legal downloader tools into one interface
-- **Local processing** - All downloads happen on your device
-- **Content you own** - Download your own content from platforms
-- **Public domain content** - Download freely available content
-- **Creative Commons content** - Download content with appropriate licenses
-
-### ❌ **PROHIBITED USES**
-**DO NOT USE THIS SOFTWARE TO:**
-- Download copyrighted content without permission
-- Circumvent DRM or copyright protections
-- Download content for commercial distribution
-- Violate any terms of service of content platforms
-- Download content that infringes on intellectual property rights
-- Use for any illegal or unauthorized purpose
-
-### 🛡️ **LEGAL PROTECTIONS**
-- **No warranty** - Software provided "as is" without any warranties
-- **No liability** - Developers not liable for any damages or legal issues
-- **User responsibility** - Users bear full responsibility for their actions
-- **No endorsement** - Use of this tool does not constitute legal advice
-- **Independent use** - Each user must determine legality independently
-
-### 📚 **LEGAL RESOURCES**
-Before using this software, familiarize yourself with:
-- **Copyright laws** in your jurisdiction
-- **Terms of service** of content platforms
-- **Fair use** provisions (if applicable)
-- **DMCA** regulations and compliance
-- **Local laws** regarding digital content
-
-**⚠️ IF YOU ARE UNSURE ABOUT THE LEGALITY OF DOWNLOADING CERTAIN CONTENT, DO NOT USE THIS TOOL. CONSULT WITH A LEGAL PROFESSIONAL.**
-
 ## ✨ Features
 
 ### 🎯 **Core Functionality**
@@ -218,6 +167,58 @@ This project combines multiple **legal, open-source tools** into a single, user-
 - **FastAPI** - Modern Python web framework (MIT License)
 
 **Important Legal Note**: This project is designed to provide a unified interface for existing, **legal** downloading tools. It does not add any new downloading capabilities beyond what these tools already provide. All underlying tools are open-source and designed for legitimate use cases. Users must ensure their use complies with applicable laws and platform terms of service.
+
+
+## ⚖️ Legal Disclaimer & Terms of Use
+
+**⚠️ IMPORTANT: READ THIS SECTION CAREFULLY BEFORE USING THIS SOFTWARE**
+
+### 🚨 **DISCLAIMER OF LIABILITY**
+**THE DEVELOPERS OF THIS SOFTWARE ARE NOT RESPONSIBLE FOR ANY ILLEGAL USE OF THIS TOOL. USERS ARE SOLELY RESPONSIBLE FOR COMPLYING WITH ALL APPLICABLE LAWS AND COPYRIGHT REGULATIONS.**
+
+### 📋 **LEGAL TERMS OF USE**
+By using this software, you agree to:
+- **Use this tool only for legal purposes**
+- **Download only content you have explicit permission to access**
+- **Comply with all applicable copyright laws and regulations**
+- **Not use this tool to circumvent any DRM or copyright protections**
+- **Accept full responsibility for your actions**
+
+### 🎯 **INTENDED LEGAL USE ONLY**
+This software is designed for:
+- **Personal use only** - Download content you have legal access to
+- **Educational purposes** - Learn about music downloading technologies
+- **Convenience** - Merge multiple legal downloader tools into one interface
+- **Local processing** - All downloads happen on your device
+- **Content you own** - Download your own content from platforms
+- **Public domain content** - Download freely available content
+- **Creative Commons content** - Download content with appropriate licenses
+
+### ❌ **PROHIBITED USES**
+**DO NOT USE THIS SOFTWARE TO:**
+- Download copyrighted content without permission
+- Circumvent DRM or copyright protections
+- Download content for commercial distribution
+- Violate any terms of service of content platforms
+- Download content that infringes on intellectual property rights
+- Use for any illegal or unauthorized purpose
+
+### 🛡️ **LEGAL PROTECTIONS**
+- **No warranty** - Software provided "as is" without any warranties
+- **No liability** - Developers not liable for any damages or legal issues
+- **User responsibility** - Users bear full responsibility for their actions
+- **No endorsement** - Use of this tool does not constitute legal advice
+- **Independent use** - Each user must determine legality independently
+
+### 📚 **LEGAL RESOURCES**
+Before using this software, familiarize yourself with:
+- **Copyright laws** in your jurisdiction
+- **Terms of service** of content platforms
+- **Fair use** provisions (if applicable)
+- **DMCA** regulations and compliance
+- **Local laws** regarding digital content
+
+**⚠️ IF YOU ARE UNSURE ABOUT THE LEGALITY OF DOWNLOADING CERTAIN CONTENT, DO NOT USE THIS TOOL. CONSULT WITH A LEGAL PROFESSIONAL.**
 
 ## ☕ Support the Project
 
