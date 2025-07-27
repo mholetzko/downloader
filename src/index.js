@@ -43,7 +43,7 @@ function startApiServer() {
         // Development mode - use local files
         const resourcePath = __dirname;
         apiServerPath = path.join(resourcePath, '..', 'api', 'api_server.py');
-        pythonPath = path.join(resourcePath, '..', 'venv', 'bin', 'python');
+        pythonPath = path.join(resourcePath, '..', 'api', 'venv', 'bin', 'python');
         
         console.log('Development mode - Resource path:', resourcePath);
         console.log('Development mode - API server path:', apiServerPath);
@@ -58,6 +58,8 @@ function startApiServer() {
         // Check if virtual environment exists
         if (!fs.existsSync(pythonPath)) {
             console.error('Virtual environment not found:', pythonPath);
+            console.error('Expected at:', pythonPath);
+            console.error('Please run: ./setup.sh');
             return;
         }
     } else {
@@ -82,9 +84,17 @@ function startApiServer() {
     
     // Start API server
     const args = isDev ? [apiServerPath] : [];
+    const cwd = isDev ? path.join(__dirname, '..', 'api') : undefined;
+    
+    console.log('Starting API server with:');
+    console.log('  Python path:', pythonPath);
+    console.log('  Args:', args);
+    console.log('  Working directory:', cwd);
+    
     apiServerProcess = spawn(pythonPath, args, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, PYTHONPATH: isDev ? __dirname : undefined }
+        env: { ...process.env, PYTHONPATH: isDev ? path.join(__dirname, '..', 'api') : undefined },
+        cwd: cwd
     });
     
     apiServerProcess.stdout.on('data', (data) => {
@@ -94,12 +104,25 @@ function startApiServer() {
         // Check if server is ready
         if (output.includes('Uvicorn running') || output.includes('Application startup complete')) {
             apiServerReady = true;
-            console.log('API server is ready');
+            console.log('✅ API server is ready');
+        }
+        
+        // Check for startup errors
+        if (output.includes('address already in use')) {
+            console.error('❌ Port 8000 is already in use. Please stop any running API servers.');
         }
     });
     
     apiServerProcess.stderr.on('data', (data) => {
-        console.log('API Server Error:', data.toString());
+        const error = data.toString();
+        console.log('API Server Error:', error);
+        
+        // Check for common errors
+        if (error.includes('No module named')) {
+            console.error('❌ Missing Python dependencies. Please run: ./setup.sh');
+        } else if (error.includes('Permission denied')) {
+            console.error('❌ Permission denied. Please check file permissions.');
+        }
     });
     
     apiServerProcess.on('close', (code) => {
