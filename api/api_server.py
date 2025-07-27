@@ -15,7 +15,7 @@ import shutil
 import logging
 import platform
 
-__version__ = "6.0.0"
+__version__ = "1.0.0"
 
 app = FastAPI()
 
