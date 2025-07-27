@@ -21,7 +21,7 @@ a = Analysis(
     ['api/api_server.py'],
     pathex=[],
     binaries=[
-        ('ffmpeg/ffmpeg', 'ffmpeg'),
+        ('api/ffmpeg', 'ffmpeg'),
         ('venv/bin/yt-dlp', 'yt-dlp'),
         ('venv/bin/spotdl', 'spotdl'),
         ('venv/bin/scdl', 'scdl'),

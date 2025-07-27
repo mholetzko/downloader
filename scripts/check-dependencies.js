@@ -15,7 +15,7 @@ const requiredFiles = [
   'api/api_server.py',
   'api/database.py',
   'api/requirements.txt',
-  'ffmpeg/ffmpeg'
+      'api/ffmpeg'
 ];
 
 let allGood = true;

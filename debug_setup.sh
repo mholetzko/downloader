@@ -40,7 +40,7 @@ echo "📦 Installing Node.js dependencies..."
 npm install
 
 # Download FFmpeg if not present
-if [ ! -f "ffmpeg/ffmpeg" ]; then
+if [ ! -f "api/ffmpeg" ]; then
     echo "📥 Downloading FFmpeg..."
     npm run download-ffmpeg
 fi

@@ -264,8 +264,8 @@ ipcMain.handle('checkApiStatus', async () => {
 
 ipcMain.handle('checkFfmpegStatus', async () => {
     try {
-        // Check for bundled FFmpeg first
-        const bundledFfmpeg = path.join(__dirname, '..', 'ffmpeg', 'ffmpeg');
+            // Check for bundled FFmpeg first
+    const bundledFfmpeg = path.join(__dirname, '..', 'api', 'ffmpeg');
         if (fs.existsSync(bundledFfmpeg)) {
             console.log('Bundled FFmpeg found:', bundledFfmpeg);
             return { available: true, path: bundledFfmpeg, type: 'bundled' };
