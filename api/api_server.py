@@ -39,11 +39,11 @@ class DownloadResponse(BaseModel):
     message: str
 
 # Create downloads directory
-DOWNLOADS_DIR = Path.home() / "Downloads" / "music-downloader"
+DOWNLOADS_DIR = Path.home() / "Downloads" / "all-dlp"
 DOWNLOADS_DIR.mkdir(exist_ok=True)
 
 # Setup logging
-LOG_FILE = DOWNLOADS_DIR / "music-downloader.log"
+LOG_FILE = DOWNLOADS_DIR / "all-dlp.log"
 file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
 stream_handler = logging.StreamHandler()
 logging.basicConfig(
@@ -51,7 +51,7 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(message)s',
     handlers=[file_handler, stream_handler]
 )
-logging.info("==== Music Downloader API Server Startup ====")
+logging.info("==== ALL-DLP API Server Startup ====")
 logging.info(f"Python version: {sys.version}")
 logging.info(f"Platform: {platform.platform()}")
 logging.info(f"Executable: {sys.executable}")

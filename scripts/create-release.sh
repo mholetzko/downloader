@@ -1,5 +1,5 @@
 #!/bin/bash
-# Music Downloader Release Script
+# ALL-DLP Release Script
 # This script helps create a new release by:
 # 1. Updating the version in package.json
 # 2. Creating a git tag
@@ -12,7 +12,7 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🎵 Music Downloader Release Script${NC}"
+echo -e "${BLUE}🎵 ALL-DLP Release Script${NC}"
 echo "=================================="
 
 # Check if we're in a git repository

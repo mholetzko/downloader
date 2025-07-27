@@ -1,6 +1,6 @@
-# Music Downloader - Frontend Architecture
+# ALL-DLP - Frontend Architecture
 
-This directory contains the Electron frontend application that provides the user interface for the Music Downloader.
+This directory contains the Electron frontend application that provides the user interface for ALL-DLP.
 
 ## 🏗️ Architecture Overview
 

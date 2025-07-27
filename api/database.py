@@ -8,7 +8,7 @@ class DownloadDatabase:
     def __init__(self):
         # Create database in the user's home directory for write permissions
         home_dir = Path.home()
-        app_data_dir = home_dir / ".music-downloader"
+        app_data_dir = home_dir / ".all-dlp"
         app_data_dir.mkdir(exist_ok=True)
         
         db_path = app_data_dir / "downloads.db"

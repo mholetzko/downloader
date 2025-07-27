@@ -71,7 +71,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='music-downloader-api',
+    name='all-dlp-api',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -92,45 +92,45 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='music-downloader-api',
+    name='all-dlp-api',
 )
 `;
 
-    fs.writeFileSync('music-downloader.spec', specContent);
+    fs.writeFileSync('all-dlp.spec', specContent);
 
     // Run PyInstaller
     console.log('📦 Step 3: Building PyInstaller bundle...');
-    execSync('pyinstaller music-downloader.spec', { stdio: 'inherit' });
+    execSync('pyinstaller all-dlp.spec', { stdio: 'inherit' });
 
     // Create launcher script
     console.log('📝 Step 4: Creating launcher script...');
     
     const launcherScript = `#!/bin/bash
-# Music Downloader Launcher
+# ALL-DLP Launcher
 SCRIPT_DIR="\\$(dirname "\\$0")"
 cd "\\$SCRIPT_DIR"
 
 # Start the API server
-./music-downloader-api/music-downloader-api
+./all-dlp-api/all-dlp-api
 `;
 
     // Create installer script
     const installerScript = `#!/bin/bash
-# Music Downloader Installer
-echo "Installing Music Downloader..."
+# ALL-DLP Installer
+echo "Installing ALL-DLP..."
 
 # Copy to Applications
-APP_DIR="/Applications/Music Downloader.app/Contents/Resources"
+APP_DIR="/Applications/ALL-DLP.app/Contents/Resources"
 sudo mkdir -p "\\$APP_DIR"
 
 # Copy the bundle
-sudo cp -r dist/music-downloader-api "\\$APP_DIR/"
+sudo cp -r dist/all-dlp-api "\\$APP_DIR/"
 
 # Make executable
-sudo chmod +x "\\$APP_DIR/music-downloader-api"
+sudo chmod +x "\\$APP_DIR/all-dlp-api"
 
 echo "✅ Installation complete!"
-echo "You can now run: /Applications/Music\\ Downloader.app/Contents/Resources/launcher.sh"
+echo "You can now run: /Applications/ALL-DLP.app/Contents/Resources/launcher.sh"
 `;
 
     fs.writeFileSync('dist/launcher.sh', launcherScript);
@@ -140,7 +140,7 @@ echo "You can now run: /Applications/Music\\ Downloader.app/Contents/Resources/l
     execSync('chmod +x dist/install.sh', { stdio: 'inherit' });
 
     console.log('✅ PyInstaller bundle created successfully!');
-    console.log('📂 Bundle location: dist/music-downloader-api/');
+    console.log('📂 Bundle location: dist/all-dlp-api/');
     console.log('🚀 To install: sudo ./dist/install.sh');
     
   } catch (error) {

@@ -1,12 +1,12 @@
-# 🎵 Music Downloader
+# 🎵 ALL-DLP
 
 **Download music from YouTube, Spotify, and SoundCloud with ease**
 
 > ⚠️ **LEGAL WARNING**: This software is for educational and personal convenience only. Users are solely responsible for complying with all applicable copyright laws and regulations. The developers are not liable for any illegal use of this tool.
 
-A beautiful, privacy-focused desktop application that enables us to use existing music downloader libraries with a more comfortable UI. Built with modern technologies and designed for simplicity.
+A beautiful, privacy-focused desktop application that combines multiple download libraries (yt-dlp, spotdl, scdl) into one unified interface. Built with modern technologies and designed for simplicity.
 
-![Music Downloader Main Interface](docs/main-ui.png)
+![ALL-DLP Main Interface](docs/main-ui.png)
 
 ## ✨ Features
 
@@ -94,7 +94,7 @@ npm run dev
 Downloaded files are automatically organized in your Downloads folder:
 
 ```
-~/Downloads/music-downloader/
+~/Downloads/all-dlp/
 ├── Song Title-abc123.mp3
 ├── Another Song-def456.mp3
 └── Playlist Name/

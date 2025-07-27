@@ -1,6 +1,6 @@
-# Music Downloader API
+# ALL-DLP API
 
-This directory contains the Python backend for the Music Downloader application.
+This directory contains the Python backend for the ALL-DLP application.
 
 ## Structure
 

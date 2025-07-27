@@ -1,7 +1,7 @@
 """
-Music Downloader API Package
+ALL-DLP API Package
 
-This package contains the Python backend for the Music Downloader application.
+This package contains the Python backend for the ALL-DLP application.
 It provides API endpoints for downloading music from YouTube, Spotify, and SoundCloud.
 """
 

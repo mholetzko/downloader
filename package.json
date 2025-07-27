@@ -1,5 +1,5 @@
 {
-  "name": "music-downloader",
+  "name": "all-dlp",
   "version": "7.0.0",
   "description": "A beautiful desktop app for downloading music from YouTube, Spotify, and SoundCloud",
   "main": "src/index.js",
@@ -41,8 +41,8 @@
     "concurrently": "^8.2.2"
   },
   "build": {
-    "appId": "com.yourname.music-downloader",
-    "productName": "Music Downloader",
+    "appId": "com.yourname.all-dlp",
+    "productName": "ALL-DLP",
     "directories": {
       "output": "dist"
     },
@@ -62,8 +62,8 @@
         "to": "ffmpeg"
       },
       {
-        "from": "dist/music-downloader-api",
-        "to": "music-downloader-api"
+        "from": "dist/all-dlp-api",
+        "to": "all-dlp-api"
       },
       {
         "from": "src/assets/icons",
