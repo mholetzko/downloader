@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install system dependencies
+        run: |
+          brew install ffmpeg
+          
+      - name: Install npm dependencies
+        run: npm install
+        
+      - name: Download FFmpeg
+        run: npm run download-ffmpeg
+        
+      - name: Get version from package.json
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+          
+      - name: Verify tag matches version
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/}
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          EXPECTED_TAG="v$PKG_VERSION"
+          
+          if [ "$TAG_VERSION" != "$EXPECTED_TAG" ]; then
+            echo "❌ Tag version ($TAG_VERSION) doesn't match package.json version (v$PKG_VERSION)"
+            exit 1
+          fi
+          echo "✅ Tag version matches package.json version"
+          
+      - name: Create Python virtual environment
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r api/requirements.txt
+          
+      - name: Build Python backend
+        run: |
+          source venv/bin/activate
+          npm run bundle-python
+          
+      - name: Build and publish Electron app (DMG)
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          npm run dist -- --mac --${{ matrix.arch }} --publish always
+          
+      - name: List build outputs
+        run: |
+          echo "Build outputs:"
+          ls -la dist/
+          
+      - name: Upload DMG artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALL-DLP-${{ matrix.arch }}-${{ steps.version.outputs.version }}
+          path: |
+            dist/ALL-DLP-*.dmg
+            dist/*.dmg
+          if-no-files-found: error 

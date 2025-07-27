@@ -134,7 +134,7 @@ releases/
 *.nupkg
 *.nsis.exe
 *.nupkg.sha512
-*.yml
+# Note: *.yml is too broad - specific files are ignored below
 
 # Electron cache and temp
 .cache/
