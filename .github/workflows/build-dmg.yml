@@ -42,9 +42,9 @@ jobs:
           npm run bundle-python
       - name: Build Electron app (DMG)
         run: |
-          npm run make -- --arch ${{ matrix.arch }}
+          npm run dist -- --mac --${{ matrix.arch }}
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
           name: bB-downloader-dev-${{ matrix.arch }}
-          path: out/*.dmg 
+          path: dist/*.dmg 
