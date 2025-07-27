@@ -40,9 +40,11 @@ jobs:
         run: |
           source venv/bin/activate
           npm run bundle-python
-      - name: Build Electron app (DMG)
+      - name: Build and publish Electron app (DMG)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run dist -- --mac --${{ matrix.arch }} --publish never
+          npm run dist -- --mac --${{ matrix.arch }} --publish always
       - name: List build outputs
         run: |
           echo "Build outputs:"
