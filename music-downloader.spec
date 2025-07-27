@@ -7,6 +7,9 @@ a = Analysis(
     pathex=[],
     binaries=[
         ('ffmpeg/ffmpeg', 'ffmpeg'),
+        ('venv/bin/yt-dlp', 'yt-dlp'),
+        ('venv/bin/spotdl', 'spotdl'),
+        ('venv/bin/scdl', 'scdl'),
     ],
     datas=[
         ('api/database.py', '.'),
@@ -53,7 +56,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='bb-downloader-api',
+    name='music-downloader-api',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -74,5 +77,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='bb-downloader-api',
+    name='music-downloader-api',
 )
