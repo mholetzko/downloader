@@ -5,16 +5,16 @@ This directory contains the Electron frontend application that provides the user
 ## 🏗️ Architecture Overview
 
 ```
-┌─────────────────┐    IPC     ┌─────────────────┐    HTTP     ┌─────────────────┐
-│   Main Process  │◄──────────►│  Renderer Process │◄──────────►│  Python API     │
-│   (index.js)    │            │   (renderer.js)   │            │  (api_server.py) │
+┌─────────────────┐    IPC     ┌─────────────────┐   HTTP     ┌─────────────────┐
+│   Main Process  │◄──────────►│ Renderer Process│◄──────────►│  Python API     │
+│   (index.js)    │            │ (renderer.js)   │            │ (api_server.py) │
 └─────────────────┘            └─────────────────┘            └─────────────────┘
          │                              │                              │
          │                              │                              │
          ▼                              ▼                              ▼
 ┌─────────────────┐            ┌─────────────────┐            ┌─────────────────┐
 │  Electron App   │            │   HTML/CSS/JS   │            │  Download Tools │
-│  Window & Menu  │            │   User Interface │            │  (yt-dlp, etc.) │
+│  Window & Menu  │            │  User Interface │            │  (yt-dlp, etc.) │
 └─────────────────┘            └─────────────────┘            └─────────────────┘
 ```
 
@@ -135,36 +135,6 @@ async function startDownload(url) {
 5. **UI updates** → Download progress and status displayed
 6. **Completion** → File link provided to user
 
-## 🎨 UI Components
-
-### Header
-- **Logo**: Two-circle design (SVG)
-- **Title**: "BLOADER" with subtitle
-- **Status buttons**: System status and help
-
-### Main Content
-- **Download Section**: URL input form
-- **Downloads Table**: History with pagination
-- **Status Indicators**: Progress bars and badges
-
-### Modals
-- **System Status**: API, FFmpeg, downloads folder
-- **Help**: How to use the application
-- **Privacy/Terms**: Legal information
-- **Playlist Confirmation**: For playlist downloads
-
-## 🔒 Security Features
-
-### Context Isolation
-- Renderer process cannot access Node.js APIs directly
-- All system access goes through preload script
-- Secure IPC communication
-
-### Content Security
-- No inline scripts (except for modal functionality)
-- External resources properly sandboxed
-- API calls restricted to localhost
-
 ## 🚀 Development Workflow
 
 ### Starting Development
@@ -184,32 +154,3 @@ npm run dist
 # Production build with Python bundling
 npm run build-mac
 ```
-
-## 🔧 Configuration
-
-### Window Settings
-- **Size**: 1200x800 (responsive)
-- **Icon**: `src/assets/icons/icon.png`
-- **Security**: Context isolation enabled
-- **DevTools**: Available in development
-
-### API Settings
-- **Host**: `localhost:8000`
-- **Timeout**: 30 seconds for downloads
-- **Retry**: Automatic retry on connection errors
-
-## 📱 Responsive Design
-
-The interface is fully responsive and works on:
-- **Desktop**: Full feature set
-- **Tablet**: Optimized layout
-- **Mobile**: Simplified interface
-
-## 🎯 Key Features
-
-- **Real-time updates**: Live download progress
-- **Error handling**: Graceful error display
-- **File management**: Direct file access
-- **History tracking**: Complete download history
-- **System monitoring**: API and tool status
-- **Modern UI**: Clean, intuitive interface 
