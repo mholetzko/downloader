@@ -6,6 +6,22 @@ A beautiful, privacy-focused desktop application that lets you download high-qua
 
 ![bB Downloader Main Interface](docs/main-ui.png)
 
+## ⚖️ Legal Disclaimer
+
+**This project is designed for local, private use only and is not intended to circumvent any copyright protections or Digital Millennium Copyright Act (DMCA) provisions.**
+
+### Intended Use
+- **Personal use only** - Download content you have legal access to
+- **Local processing** - All downloads happen on your device
+- **Educational purpose** - Learn about music downloading technologies
+- **Convenience** - Merge multiple downloader tools into one simple interface
+
+### Important Notes
+- **Respect copyright laws** - Only download content you have permission to access
+- **No commercial use** - This tool is not for commercial distribution
+- **No circumvention** - Does not bypass any DRM or copyright protections
+- **Personal responsibility** - Users are responsible for complying with applicable laws
+
 ## ✨ Features
 
 ### 🎯 **Core Functionality**
@@ -27,6 +43,8 @@ A beautiful, privacy-focused desktop application that lets you download high-qua
 - **No Data Collection** - We don't store or transmit your data
 - **Open Source** - Transparent code you can inspect
 - **Offline Capable** - Works without internet after setup
+- **Legal Compliance** - Designed for personal use only
+- **Copyright Respect** - Users must comply with applicable laws
 
 ### 🚀 **Advanced Features**
 - **Playlist Support** - Download entire playlists automatically
@@ -113,6 +131,12 @@ Downloaded files are automatically organized in your Downloads folder:
 - **Downloads not working**: Ensure internet connection and API server is running
 - **Permission errors**: Check system preferences for app permissions
 
+### Legal & Responsible Use
+- **Personal use only** - Do not use for commercial purposes
+- **Respect copyright** - Only download content you have permission to access
+- **Local processing** - All downloads stay on your device
+- **No DRM circumvention** - This tool does not bypass copyright protections
+
 ### Support Resources
 - 📖 **[Installation Guide](INSTALLATION_GUIDE.md)** - Detailed setup instructions
 - 🔧 **[Troubleshooting](TROUBLESHOOTING.md)** - Common problems and solutions
@@ -142,12 +166,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
+This project combines multiple open-source tools into a single, user-friendly interface for educational and personal convenience purposes:
+
 - **yt-dlp** - YouTube downloading engine
-- **spotdl** - Spotify downloading library
+- **spotdl** - Spotify downloading library  
 - **scdl** - SoundCloud downloading tool
 - **FFmpeg** - Audio processing and conversion
 - **Electron** - Cross-platform desktop framework
 - **FastAPI** - Modern Python web framework
+
+**Note**: This project is designed to provide a unified interface for existing, legal downloading tools. It does not add any new downloading capabilities beyond what these tools already provide.
 
 ## ☕ Support the Project
 
@@ -156,7 +184,3 @@ If you find this tool useful, consider buying us a coffee:
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/mholetsgo)
 
 ---
-
-**Made with ❤️ by Matthias Holetzko**
-
-*Enjoy your music downloads! 🎵*
