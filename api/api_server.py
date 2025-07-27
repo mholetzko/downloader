@@ -42,33 +42,68 @@ class DownloadResponse(BaseModel):
 DOWNLOADS_DIR = Path.home() / "Downloads" / "all-dlp"
 DOWNLOADS_DIR.mkdir(exist_ok=True)
 
-# Setup logging
+# Setup logging with more detailed startup information
 LOG_FILE = DOWNLOADS_DIR / "all-dlp.log"
 file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
 stream_handler = logging.StreamHandler()
+
+# Create formatter
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+# Setup logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s %(levelname)s %(message)s',
     handlers=[file_handler, stream_handler]
 )
-logging.info("==== ALL-DLP API Server Startup ====")
+
+# Enhanced startup logging
+logging.info("=" * 60)
+logging.info("ALL-DLP API Server Startup")
+logging.info("=" * 60)
 logging.info(f"Python version: {sys.version}")
 logging.info(f"Platform: {platform.platform()}")
+logging.info(f"Architecture: {platform.machine()}")
 logging.info(f"Executable: {sys.executable}")
 logging.info(f"Current working directory: {os.getcwd()}")
+logging.info(f"Script location: {__file__}")
+logging.info(f"Downloads directory: {DOWNLOADS_DIR}")
+logging.info(f"Log file: {LOG_FILE}")
 logging.info(f"PATH: {os.environ.get('PATH')}")
-logging.info(f"FFmpeg expected at: {str(Path(__file__).parent / 'ffmpeg')}")
+
+# Check FFmpeg availability
+ffmpeg_path = Path(__file__).parent / "ffmpeg"
+logging.info(f"FFmpeg expected at: {ffmpeg_path}")
+if ffmpeg_path.exists():
+    logging.info(f"✅ FFmpeg found at: {ffmpeg_path}")
+else:
+    logging.warning(f"⚠️  FFmpeg not found at: {ffmpeg_path}")
+    # Check system FFmpeg
+    import shutil
+    system_ffmpeg = shutil.which('ffmpeg')
+    if system_ffmpeg:
+        logging.info(f"✅ System FFmpeg found at: {system_ffmpeg}")
+    else:
+        logging.error("❌ No FFmpeg found in system PATH")
 def flush_logs():
     for handler in logging.getLogger().handlers:
         handler.flush()
 
-# Database import
+# Database import with enhanced logging
+logging.info("Initializing database...")
 try:
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from database import DownloadDatabase
     db = DownloadDatabase()
-except ImportError:
-    print("Warning: Database module not found, using fallback")
+    logging.info("✅ Database initialized successfully")
+except ImportError as e:
+    logging.error(f"❌ Database module not found: {e}")
+    logging.warning("⚠️  Using fallback mode - downloads will not be saved")
+    db = None
+except Exception as e:
+    logging.error(f"❌ Database initialization failed: {e}")
+    logging.warning("⚠️  Using fallback mode - downloads will not be saved")
     db = None
 
 def get_tool_path(tool_name: str) -> str:
@@ -550,4 +585,13 @@ async def clear_database():
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000) 
+    try:
+        logging.info("Starting uvicorn server...")
+        logging.info(f"Server will be available at: http://127.0.0.1:8000")
+        logging.info("=" * 60)
+        uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
+    except Exception as e:
+        logging.error(f"❌ Failed to start server: {e}")
+        print(f"❌ Failed to start server: {e}")
+        print(f"📋 Check the log file for details: {LOG_FILE}")
+        sys.exit(1) 
