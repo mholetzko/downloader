@@ -1,6 +1,6 @@
 {
   "name": "bb-downloader",
-  "version": "6.0.2",
+  "version": "6.1.0",
   "description": "Local music downloader with Python backend",
   "main": "src/index.js",
   "scripts": {
