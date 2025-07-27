@@ -107,7 +107,7 @@ coll = COLLECT(
     
     const launcherScript = `#!/bin/bash
 # Music Downloader Launcher
-SCRIPT_DIR="\\$(cd "\\$(dirname "\\${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="\\$(dirname "\\$0")"
 cd "\\$SCRIPT_DIR"
 
 # Start the API server
