@@ -30,9 +30,15 @@ jobs:
           brew install ffmpeg
       - name: Install npm dependencies
         run: npm install
+      - name: Create Python virtual environment
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
       - name: Build Python backend
         run: |
-          source venv/bin/activate || python3 -m venv venv && source venv/bin/activate
+          source venv/bin/activate
           npm run bundle-python
       - name: Build Electron app (DMG)
         run: |
