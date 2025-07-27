@@ -38,12 +38,12 @@ class DownloadResponse(BaseModel):
     status: str
     message: str
 
-# Configuration
-DOWNLOADS_DIR = Path.home() / "Downloads" / "bB-downloader"
+# Create downloads directory
+DOWNLOADS_DIR = Path.home() / "Downloads" / "music-downloader"
 DOWNLOADS_DIR.mkdir(exist_ok=True)
 
-# Set up logging to file in the downloads directory
-LOG_FILE = DOWNLOADS_DIR / "bB-downloader.log"
+# Setup logging
+LOG_FILE = DOWNLOADS_DIR / "music-downloader.log"
 file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
 stream_handler = logging.StreamHandler()
 logging.basicConfig(
@@ -51,7 +51,7 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(message)s',
     handlers=[file_handler, stream_handler]
 )
-logging.info("==== bB-downloader API Server Startup ====")
+logging.info("==== Music Downloader API Server Startup ====")
 logging.info(f"Python version: {sys.version}")
 logging.info(f"Platform: {platform.platform()}")
 logging.info(f"Executable: {sys.executable}")

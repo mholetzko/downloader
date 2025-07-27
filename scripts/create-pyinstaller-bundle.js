@@ -71,7 +71,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='bb-downloader-api',
+    name='music-downloader-api',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -92,58 +92,55 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='bb-downloader-api',
+    name='music-downloader-api',
 )
 `;
 
-    fs.writeFileSync('bb-downloader.spec', specContent);
+    fs.writeFileSync('music-downloader.spec', specContent);
 
     // Run PyInstaller
-    console.log('🔨 Step 3: Building with PyInstaller...');
-    execSync('pyinstaller bb-downloader.spec', { stdio: 'inherit' });
+    console.log('📦 Step 3: Building PyInstaller bundle...');
+    execSync('pyinstaller music-downloader.spec', { stdio: 'inherit' });
 
     // Create launcher script
-    console.log('🔧 Step 4: Creating launcher...');
+    console.log('📝 Step 4: Creating launcher script...');
     
     const launcherScript = `#!/bin/bash
-# bB Downloader Launcher
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR"
-./bb-downloader-api/bb-downloader-api
+# Music Downloader Launcher
+SCRIPT_DIR="\\$(cd "\\$(dirname "\\${BASH_SOURCE[0]}")" && pwd)"
+cd "\\$SCRIPT_DIR"
+
+# Start the API server
+./music-downloader-api/music-downloader-api
+`;
+
+    // Create installer script
+    const installerScript = `#!/bin/bash
+# Music Downloader Installer
+echo "Installing Music Downloader..."
+
+# Copy to Applications
+APP_DIR="/Applications/Music Downloader.app/Contents/Resources"
+sudo mkdir -p "\\$APP_DIR"
+
+# Copy the bundle
+sudo cp -r dist/music-downloader-api "\\$APP_DIR/"
+
+# Make executable
+sudo chmod +x "\\$APP_DIR/music-downloader-api"
+
+echo "✅ Installation complete!"
+echo "You can now run: /Applications/Music\\ Downloader.app/Contents/Resources/launcher.sh"
 `;
 
     fs.writeFileSync('dist/launcher.sh', launcherScript);
     execSync('chmod +x dist/launcher.sh', { stdio: 'inherit' });
 
-    // Create installer
-    console.log('🎯 Step 5: Creating installer...');
-    
-    const installerScript = `#!/bin/bash
-# bB Downloader Installer
-echo "Installing bB Downloader..."
-
-# Create application directory
-APP_DIR="/Applications/bB Downloader.app/Contents/Resources"
-sudo mkdir -p "\\$APP_DIR"
-
-# Copy PyInstaller bundle
-sudo cp -r dist/bb-downloader-api "\\$APP_DIR/"
-sudo cp dist/launcher.sh "\\$APP_DIR/"
-
-# Set permissions
-sudo chmod +x "\\$APP_DIR/launcher.sh"
-sudo chmod +x "\\$APP_DIR/bb-downloader-api"
-sudo chown -R root:wheel "\\$APP_DIR"
-
-echo "Installation complete!"
-echo "You can now run: /Applications/bB\\ Downloader.app/Contents/Resources/launcher.sh"
-`;
-
     fs.writeFileSync('dist/install.sh', installerScript);
     execSync('chmod +x dist/install.sh', { stdio: 'inherit' });
 
     console.log('✅ PyInstaller bundle created successfully!');
-    console.log('📂 Bundle location: dist/bb-downloader-api/');
+    console.log('📂 Bundle location: dist/music-downloader-api/');
     console.log('🚀 To install: sudo ./dist/install.sh');
     
   } catch (error) {

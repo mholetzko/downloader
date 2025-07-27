@@ -1,7 +1,7 @@
 """
-bB Downloader API Package
+Music Downloader API Package
 
-This package contains the Python backend for the bB Downloader application.
+This package contains the Python backend for the Music Downloader application.
 It provides API endpoints for downloading music from YouTube, Spotify, and SoundCloud.
 """
 

@@ -1,6 +1,6 @@
-# bB Downloader API
+# Music Downloader API
 
-This directory contains the Python backend for the bB Downloader application.
+This directory contains the Python backend for the Music Downloader application.
 
 ## Structure
 

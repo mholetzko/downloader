@@ -1,7 +1,7 @@
 {
-  "name": "bb-downloader",
-  "version": "6.1.0",
-  "description": "Local music downloader with Python backend",
+  "name": "music-downloader",
+  "version": "6.0.2",
+  "description": "A beautiful desktop app for downloading music from YouTube, Spotify, and SoundCloud",
   "main": "src/index.js",
   "scripts": {
     "start": "electron .",
@@ -41,8 +41,8 @@
     "concurrently": "^8.2.2"
   },
   "build": {
-    "appId": "com.yourname.bb-downloader",
-    "productName": "bB Downloader",
+    "appId": "com.yourname.music-downloader",
+    "productName": "Music Downloader",
     "directories": {
       "output": "dist"
     },
@@ -62,8 +62,8 @@
         "to": "ffmpeg"
       },
       {
-        "from": "dist/bb-downloader-api",
-        "to": "bb-downloader-api"
+        "from": "dist/music-downloader-api",
+        "to": "music-downloader-api"
       },
       {
         "from": "src/assets/icons",

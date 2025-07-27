@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🎵 Building bB Downloader..."
+echo "🎵 Building Music Downloader..."
 
 # Check if we're in the right directory
 if [ ! -f "package.json" ]; then
@@ -52,15 +52,15 @@ if [ $? -eq 0 ]; then
     echo "   dist/"
     echo ""
     echo "Available formats:"
-    echo "  - macOS ARM64: bB Downloader-1.0.0-arm64.dmg"
-    echo "  - macOS Intel: bB Downloader-1.0.0.dmg"
+    echo "  - macOS ARM64: Music Downloader-1.0.0-arm64.dmg"
+    echo "  - macOS Intel: Music Downloader-1.0.0.dmg"
     echo ""
     echo "🎉 You can now distribute these .dmg files to users!"
     echo ""
     echo "📋 Installation instructions for users:"
     echo "  1. Download the appropriate .dmg file for their Mac"
     echo "  2. Double-click the .dmg file"
-    echo "  3. Drag 'bB Downloader' to Applications folder"
+    echo "  3. Drag 'Music Downloader' to Applications folder"
     echo "  4. Launch the app from Applications"
     echo "  5. FFmpeg is included - no additional setup required!"
 else

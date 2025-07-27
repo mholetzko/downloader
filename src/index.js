@@ -63,7 +63,7 @@ function startApiServer() {
     } else {
         // Production mode - use PyInstaller bundle
         const resourcePath = process.resourcesPath;
-        apiServerPath = path.join(resourcePath, 'bb-downloader-api', 'bb-downloader-api');
+        apiServerPath = path.join(resourcePath, 'music-downloader-api', 'music-downloader-api');
         pythonPath = apiServerPath; // PyInstaller executable is self-contained
         
         console.log('Production mode - Resource path:', resourcePath);
@@ -266,7 +266,7 @@ ipcMain.handle('checkFfmpegStatus', async () => {
 
 ipcMain.handle('checkDownloadsFolder', async () => {
     try {
-        const downloadsDir = path.join(process.env.HOME || process.env.USERPROFILE, 'Downloads', 'bB-downloader');
+        const downloadsDir = path.join(process.env.HOME || process.env.USERPROFILE, 'Downloads', 'music-downloader');
         if (!fs.existsSync(downloadsDir)) {
             fs.mkdirSync(downloadsDir, { recursive: true });
         }

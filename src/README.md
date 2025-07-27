@@ -1,6 +1,6 @@
-# bB Downloader - Frontend Architecture
+# Music Downloader - Frontend Architecture
 
-This directory contains the Electron frontend application that provides the user interface for the bB Downloader.
+This directory contains the Electron frontend application that provides the user interface for the Music Downloader.
 
 ## 🏗️ Architecture Overview
 
