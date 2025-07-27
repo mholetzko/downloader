@@ -42,7 +42,7 @@ jobs:
           npm run bundle-python
       - name: Build and publish Electron app (DMG)
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           npm run dist -- --mac --${{ matrix.arch }} --publish always
       - name: List build outputs
