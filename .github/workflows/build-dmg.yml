@@ -43,8 +43,15 @@ jobs:
       - name: Build Electron app (DMG)
         run: |
           npm run dist -- --mac --${{ matrix.arch }}
+      - name: List build outputs
+        run: |
+          echo "Build outputs:"
+          ls -la dist/
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
           name: bB-downloader-dev-${{ matrix.arch }}
-          path: dist/*.dmg 
+          path: |
+            dist/bB Downloader-*.dmg
+            dist/*.dmg
+          if-no-files-found: error 
