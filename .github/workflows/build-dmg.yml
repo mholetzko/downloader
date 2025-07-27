@@ -31,7 +31,6 @@ jobs:
           npm install
       - name: Build Python backend
         run: |
-          cd electron-app
           source venv/bin/activate || python3 -m venv venv && source venv/bin/activate
           npm run bundle-python
       - name: Build Electron app (DMG)
