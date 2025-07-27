@@ -62,8 +62,10 @@ The API is integrated with the Electron frontend and can be:
 
 ## Endpoints
 
-- `GET /health` - Health check
-- `POST /download` - Start a download job
-- `GET /status/{job_id}` - Get download status
-- `GET /history` - Get download history
-- `DELETE /job/{job_id}` - Cancel a download job 
+- `GET /api/health` - Health check
+- `POST /api/download` - Start a download job
+- `GET /api/downloads` - Get all download history
+- `GET /api/download/{download_id}` - Get specific download status
+- `DELETE /api/download/{download_id}` - Delete a download from history
+- `POST /api/download/{download_id}/redownload` - Re-download a file
+- `DELETE /api/downloads/clear` - Clear all download history 
