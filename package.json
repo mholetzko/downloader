@@ -1,6 +1,6 @@
 {
   "name": "all-dlp",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "description": "A beautiful desktop app for downloading music from YouTube, Spotify, and SoundCloud",
   "main": "src/index.js",
   "scripts": {
