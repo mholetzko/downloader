@@ -38,7 +38,6 @@
     "semver": "^7.7.2"
   },
   "dependencies": {
-    "better-sqlite3": "^12.2.0",
     "concurrently": "^8.2.2"
   },
   "build": {
