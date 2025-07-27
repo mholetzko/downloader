@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+yt-dlp
+spotdl
+scdl
+python-multipart
+pydantic
+python-dotenv
+requests 
