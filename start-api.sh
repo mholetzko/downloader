@@ -20,21 +20,34 @@ if [ ! -d "api" ]; then
     exit 1
 fi
 
+# Detect current architecture
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then
+    VENV_DIR="venv-x64"
+    echo "🖥️  Detected Intel x86_64 architecture"
+elif [ "$ARCH" = "arm64" ]; then
+    VENV_DIR="venv-arm64"
+    echo "🍎 Detected Apple Silicon ARM64 architecture"
+else
+    echo "❌ Unsupported architecture: $ARCH"
+    exit 1
+fi
+
 # Check if virtual environment exists
-if [ ! -d "api/venv" ]; then
+if [ ! -d "$VENV_DIR" ]; then
     echo "❌ Error: Virtual environment not found. Please run setup.sh first."
     echo "  ./setup.sh"
     exit 1
 fi
 
-echo "✅ Found API directory and virtual environment"
+echo "✅ Found API directory and virtual environment ($VENV_DIR)"
 
 # Change to api directory and start server
 echo "🚀 Starting API server..."
 cd api
 
 # Activate virtual environment
-source venv/bin/activate
+source "../$VENV_DIR/bin/activate"
 
 # Start the API server
 echo "📡 API server will be available at: http://127.0.0.1:8000"

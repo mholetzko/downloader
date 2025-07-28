@@ -22,18 +22,31 @@ fi
 
 echo "✅ Python 3 found: $(python3 --version)"
 
+# Detect current architecture
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then
+    VENV_DIR="venv-x64"
+    echo "🖥️  Detected Intel x86_64 architecture"
+elif [ "$ARCH" = "arm64" ]; then
+    VENV_DIR="venv-arm64"
+    echo "🍎 Detected Apple Silicon ARM64 architecture"
+else
+    echo "❌ Unsupported architecture: $ARCH"
+    exit 1
+fi
+
 # Create virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
-    echo "📦 Creating Python virtual environment..."
-    python3 -m venv venv
+if [ ! -d "$VENV_DIR" ]; then
+    echo "📦 Creating Python virtual environment ($VENV_DIR)..."
+    python3 -m venv "$VENV_DIR"
     echo "✅ Virtual environment created"
 else
-    echo "✅ Virtual environment already exists"
+    echo "✅ Virtual environment already exists ($VENV_DIR)"
 fi
 
 # Activate virtual environment
-echo "🔧 Activating virtual environment..."
-source venv/bin/activate
+echo "🔧 Activating virtual environment ($VENV_DIR)..."
+source "$VENV_DIR/bin/activate"
 
 # Upgrade pip
 echo "⬆️ Upgrading pip..."

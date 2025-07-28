@@ -43,7 +43,12 @@ function startApiServer() {
         // Development mode - use local files
         const resourcePath = __dirname;
         apiServerPath = path.join(resourcePath, '..', 'api', 'api_server.py');
-        pythonPath = path.join(resourcePath, '..', 'api', 'venv', 'bin', 'python');
+        
+        // Detect architecture for development mode
+        const os = require('os');
+        const arch = os.arch();
+        const venvDir = arch === 'x64' ? 'venv-x64' : 'venv-arm64';
+        pythonPath = path.join(resourcePath, '..', venvDir, 'bin', 'python');
         
         console.log('Development mode - Resource path:', resourcePath);
         console.log('Development mode - API server path:', apiServerPath);
