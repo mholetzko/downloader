@@ -4,8 +4,20 @@ const { execSync } = require('child_process');
 
 console.log('🚀 Creating PyInstaller bundle for Mac...\n');
 
-// Detect target architecture from environment
-const targetArch = process.env.MATRIX_ARCH || process.env.ARCH || 'arm64';
+// Detect target architecture from system
+let targetArch;
+if (process.env.MATRIX_ARCH) {
+  // Use CI/CD environment variable if available
+  targetArch = process.env.MATRIX_ARCH;
+  console.log(`🎯 Using CI/CD architecture: ${targetArch}`);
+} else {
+  // Detect from system
+  const os = require('os');
+  const systemArch = os.arch();
+  targetArch = systemArch === 'x64' ? 'x64' : 'arm64';
+  console.log(`🎯 Detected system architecture: ${systemArch} -> ${targetArch}`);
+}
+
 console.log(`🎯 Target architecture: ${targetArch}`);
 
 // Use architecture-specific virtual environment
