@@ -22,7 +22,7 @@ This directory contains images and visual assets for the project documentation.
 
 ## Image Guidelines
 
-- **Quality**: High resolution, clear and crisp
+- **Format**: MP3 files with original titles
 - **Style**: Consistent with the app's dark theme
 - **Content**: Show realistic examples and data
 - **Privacy**: Ensure no personal information is visible
