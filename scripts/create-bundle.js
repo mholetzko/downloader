@@ -2,113 +2,96 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Creating self-contained bundle for Mac...\n');
+console.log('🚀 Creating ALL-DLP bundle...\n');
 
-// Configuration
-const BUNDLE_DIR = 'bundle';
-const PYTHON_VERSION = '3.11.7';
-const PYTHON_URL = `https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg`;
+// Detect current architecture
+const os = require('os');
+const arch = os.arch();
+const venvDir = arch === 'x64' ? 'venv-x64' : 'venv-arm64';
+
+console.log(`🎯 Detected architecture: ${arch} (using ${venvDir})`);
 
 async function createBundle() {
   try {
-    // Clean and create bundle directory
-    if (fs.existsSync(BUNDLE_DIR)) {
-      fs.rmSync(BUNDLE_DIR, { recursive: true });
-    }
-    fs.mkdirSync(BUNDLE_DIR, { recursive: true });
-
-    console.log('📦 Step 1: Downloading Python installer...');
-    
-    // Download Python installer
-    const pythonInstallerPath = path.join(BUNDLE_DIR, 'python-installer.pkg');
-    execSync(`curl -L -o "${pythonInstallerPath}" "${PYTHON_URL}"`, { stdio: 'inherit' });
-
-    console.log('🐍 Step 2: Installing Python to bundle...');
-    
-    // Install Python to bundle directory
-    const pythonBundlePath = path.join(BUNDLE_DIR, 'python');
-    execSync(`pkgutil --expand "${pythonInstallerPath}" "${BUNDLE_DIR}/python-expanded"`, { stdio: 'inherit' });
-    
-    // Extract Python from the package
-    execSync(`tar -xf "${BUNDLE_DIR}/python-expanded/Python.pkg/Payload" -C "${BUNDLE_DIR}"`, { stdio: 'inherit' });
-    
-    // Move Python to bundle/python
-    if (fs.existsSync(path.join(BUNDLE_DIR, 'usr/local/bin'))) {
-      fs.renameSync(path.join(BUNDLE_DIR, 'usr/local/bin'), pythonBundlePath);
+    // Check if virtual environment exists
+    if (!fs.existsSync(venvDir)) {
+      console.error(`❌ Virtual environment not found: ${venvDir}`);
+      console.error('Please run setup.sh first: ./setup.sh');
+      process.exit(1);
     }
 
-    // Install Python dependencies
-    console.log('📦 Step 2: Installing Python dependencies...');
-    const venvPath = path.join(BUNDLE_DIR, 'venv');
-    const pipPath = path.join(venvPath, 'bin', 'pip');
-    execSync(`${pipPath} install -r api/requirements.txt`, { stdio: 'inherit' });
+    // Check if API directory exists
+    if (!fs.existsSync('api')) {
+      console.error('❌ API directory not found');
+      process.exit(1);
+    }
 
-    // Create launcher script
-    console.log('📝 Step 3: Creating launcher script...');
+    // Check if FFmpeg exists
+    if (!fs.existsSync('api/ffmpeg')) {
+      console.log('📥 Downloading FFmpeg...');
+      execSync('npm run download-ffmpeg', { stdio: 'inherit' });
+    }
+
+    console.log('🐍 Step 1: Building Python API server...');
+    
+    // Build the Python API server using PyInstaller
+    execSync('npm run bundle-python', { stdio: 'inherit' });
+
+    console.log('📦 Step 2: Creating launcher script...');
     
     const launcherContent = `#!/bin/bash
 SCRIPT_DIR="\\$(dirname "\\$0")"
 cd "\\$SCRIPT_DIR"
 
-# Activate virtual environment and start API server
-"\\$SCRIPT_DIR/venv/bin/python" "\\$SCRIPT_DIR/api/api_server.py"
+# Start the bundled API server
+"\\$SCRIPT_DIR/all-dlp-api/all-dlp-api"
 `;
 
-    // Create start script
+    fs.writeFileSync('dist/launcher.sh', launcherContent);
+    execSync('chmod +x dist/launcher.sh', { stdio: 'inherit' });
+
+    console.log('📝 Step 3: Creating start script...');
+    
     const startContent = `#!/bin/bash
 SCRIPT_DIR="\\$(dirname "\\$0")"
 cd "\\$SCRIPT_DIR"
 
 # Start API server
-python "\\$SCRIPT_DIR/api/api_server.py"
+"\\$SCRIPT_DIR/all-dlp-api/all-dlp-api"
 `;
 
-    // Copy Python files
-    const pythonFiles = [
-      'api/api_server.py',
-      'api/database.py',
-      'api/requirements.txt',
-      'ffmpeg'
-    ];
-    
-    pythonFiles.forEach(file => {
-      if (fs.existsSync(file)) {
-        if (fs.statSync(file).isDirectory()) {
-          execSync(`cp -r "${file}" "${BUNDLE_DIR}/"`, { stdio: 'inherit' });
-        } else {
-          execSync(`cp "${file}" "${BUNDLE_DIR}/"`, { stdio: 'inherit' });
-        }
-      }
-    });
+    fs.writeFileSync('dist/start.sh', startContent);
+    execSync('chmod +x dist/start.sh', { stdio: 'inherit' });
 
-    console.log('🎯 Step 6: Creating installer package...');
+    console.log('🎯 Step 4: Creating installer package...');
     
-    // Create installer package
     const installerScript = `#!/bin/bash
-# bB Downloader Installer
-echo "Installing bB Downloader..."
+# ALL-DLP Installer
+echo "Installing ALL-DLP..."
 
 # Create application directory
-APP_DIR="/Applications/bB Downloader.app/Contents/Resources"
+APP_DIR="/Applications/ALL-DLP.app/Contents/Resources"
 sudo mkdir -p "\\$APP_DIR"
 
 # Copy bundle files
-sudo cp -r bundle/* "\\$APP_DIR/"
+sudo cp -r dist/* "\\$APP_DIR/"
 
 # Set permissions
 sudo chmod +x "\\$APP_DIR/launcher.sh"
+sudo chmod +x "\\$APP_DIR/start.sh"
 sudo chown -R root:wheel "\\$APP_DIR"
 
 echo "Installation complete!"
-echo "You can now run: /Applications/bB\\ Downloader.app/Contents/Resources/launcher.sh"
+echo "You can now run: /Applications/ALL-DLP.app/Contents/Resources/launcher.sh"
 `;
     
-    fs.writeFileSync(path.join(BUNDLE_DIR, 'install.sh'), installerScript);
-    execSync(`chmod +x "${BUNDLE_DIR}/install.sh"`, { stdio: 'inherit' });
+    fs.writeFileSync('dist/install.sh', installerScript);
+    execSync('chmod +x dist/install.sh', { stdio: 'inherit' });
 
     console.log('✅ Bundle created successfully!');
-    console.log(`📂 Bundle location: ${path.resolve(BUNDLE_DIR)}`);
-    console.log('🚀 To install: sudo ./bundle/install.sh');
+    console.log(`📂 Bundle location: ${path.resolve('dist')}`);
+    console.log('🚀 To install: sudo ./dist/install.sh');
+    console.log('🎵 To start API server: ./dist/start.sh');
     
   } catch (error) {
     console.error('❌ Error creating bundle:', error.message);
