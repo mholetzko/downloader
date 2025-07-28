@@ -57,6 +57,10 @@ async function createPyInstallerBundle() {
       console.log('⚠️  scdl not found');
     }
 
+    // Detect target architecture from environment
+    const targetArch = process.env.MATRIX_ARCH || process.env.ARCH || 'arm64';
+    console.log(`🎯 Target architecture: ${targetArch}`);
+
     const specContent = `# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
@@ -142,7 +146,13 @@ coll = COLLECT(
     // Run PyInstaller
     console.log('📦 Step 3: Building PyInstaller bundle...');
     try {
-      execSync('pyinstaller all-dlp.spec', { stdio: 'inherit' });
+      // Use architecture-specific PyInstaller command
+      const pyinstallerCmd = targetArch === 'x64' 
+        ? 'arch -x86_64 pyinstaller all-dlp.spec'
+        : 'pyinstaller all-dlp.spec';
+      
+      console.log(`🔨 Running: ${pyinstallerCmd}`);
+      execSync(pyinstallerCmd, { stdio: 'inherit' });
       console.log('✅ PyInstaller bundle created successfully!');
       console.log('📦 Bundle location: dist/all-dlp-api/');
     } catch (error) {
