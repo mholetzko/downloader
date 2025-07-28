@@ -62,16 +62,34 @@ jobs:
           
       - name: Create Python virtual environment
         run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r api/requirements.txt
+          # Create architecture-specific virtual environment
+          if [ "${{ matrix.arch }}" = "x64" ]; then
+            echo "Creating x64 virtual environment..."
+            arch -x86_64 python3 -m venv venv-x64
+            source venv-x64/bin/activate
+            pip install --upgrade pip
+            pip install -r api/requirements.txt
+          else
+            echo "Creating arm64 virtual environment..."
+            python3 -m venv venv-arm64
+            source venv-arm64/bin/activate
+            pip install --upgrade pip
+            pip install -r api/requirements.txt
+          fi
           
       - name: Build Python backend
         env:
           MATRIX_ARCH: ${{ matrix.arch }}
         run: |
-          source venv/bin/activate
+          # Use architecture-specific virtual environment
+          if [ "${{ matrix.arch }}" = "x64" ]; then
+            source venv-x64/bin/activate
+            echo "Building Python bundle for x64 architecture"
+          else
+            source venv-arm64/bin/activate
+            echo "Building Python bundle for arm64 architecture"
+          fi
+          
           # Set architecture-specific environment for PyInstaller
           if [ "${{ matrix.arch }}" = "x64" ]; then
             export ARCHFLAGS="-arch x86_64"

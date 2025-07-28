@@ -17,8 +17,18 @@ async function createPyInstallerBundle() {
     // Create spec file for PyInstaller
     console.log('📋 Step 2: Creating PyInstaller spec...');
     
+    // Detect target architecture from environment
+    const targetArch = process.env.MATRIX_ARCH || process.env.ARCH || 'arm64';
+    console.log(`🎯 Target architecture: ${targetArch}`);
+
+    // Use architecture-specific virtual environment
+    const venvBin = targetArch === 'x64' 
+      ? path.join(__dirname, '..', 'venv-x64', 'bin')
+      : path.join(__dirname, '..', 'venv-arm64', 'bin');
+
+    console.log(`🔧 Using virtual environment: ${venvBin}`);
+
     // Check which tools are available
-    const venvBin = path.join(__dirname, '..', 'venv', 'bin');
     const availableTools = [];
 
     // Check for FFmpeg
@@ -33,7 +43,8 @@ async function createPyInstallerBundle() {
     // Check for yt-dlp
     const ytdlpPath = path.join(venvBin, 'yt-dlp');
     if (fs.existsSync(ytdlpPath)) {
-      availableTools.push("('venv/bin/yt-dlp', 'yt-dlp')");
+      const toolPath = targetArch === 'x64' ? 'venv-x64/bin/yt-dlp' : 'venv-arm64/bin/yt-dlp';
+      availableTools.push(`('${toolPath}', 'yt-dlp')`);
       console.log('✅ yt-dlp found');
     } else {
       console.log('⚠️  yt-dlp not found');
@@ -42,7 +53,8 @@ async function createPyInstallerBundle() {
     // Check for spotdl
     const spotdlPath = path.join(venvBin, 'spotdl');
     if (fs.existsSync(spotdlPath)) {
-      availableTools.push("('venv/bin/spotdl', 'spotdl')");
+      const toolPath = targetArch === 'x64' ? 'venv-x64/bin/spotdl' : 'venv-arm64/bin/spotdl';
+      availableTools.push(`('${toolPath}', 'spotdl')`);
       console.log('✅ spotdl found');
     } else {
       console.log('⚠️  spotdl not found');
@@ -51,15 +63,12 @@ async function createPyInstallerBundle() {
     // Check for scdl
     const scdlPath = path.join(venvBin, 'scdl');
     if (fs.existsSync(scdlPath)) {
-      availableTools.push("('venv/bin/scdl', 'scdl')");
+      const toolPath = targetArch === 'x64' ? 'venv-x64/bin/scdl' : 'venv-arm64/bin/scdl';
+      availableTools.push(`('${toolPath}', 'scdl')`);
       console.log('✅ scdl found');
     } else {
       console.log('⚠️  scdl not found');
     }
-
-    // Detect target architecture from environment
-    const targetArch = process.env.MATRIX_ARCH || process.env.ARCH || 'arm64';
-    console.log(`🎯 Target architecture: ${targetArch}`);
 
     const specContent = `# -*- mode: python ; coding: utf-8 -*-
 
