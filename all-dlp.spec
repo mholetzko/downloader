@@ -7,6 +7,9 @@ a = Analysis(
     pathex=[],
     binaries=[
         ('api/ffmpeg', 'ffmpeg'),
+        ('venv/bin/yt-dlp', 'yt-dlp'),
+        ('venv/bin/spotdl', 'spotdl'),
+        ('venv/bin/scdl', 'scdl'),
     ],
     datas=[
         ('api/database.py', '.'),

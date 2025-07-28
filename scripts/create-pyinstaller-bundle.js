@@ -1,18 +1,62 @@
-const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 console.log('🚀 Creating PyInstaller bundle for Mac...\n');
 
 async function createPyInstallerBundle() {
   try {
     // Install PyInstaller if not already installed
-    console.log('📦 Step 1: Installing PyInstaller...');
-    execSync('pip3 install pyinstaller', { stdio: 'inherit' });
+    console.log('📋 Step 1: Installing PyInstaller...');
+    try {
+      execSync('pip install pyinstaller', { stdio: 'inherit' });
+    } catch (error) {
+      console.log('PyInstaller already installed or installation failed');
+    }
 
     // Create spec file for PyInstaller
     console.log('📋 Step 2: Creating PyInstaller spec...');
     
+    // Check which tools are available
+    const venvBin = path.join(__dirname, '..', 'venv', 'bin');
+    const availableTools = [];
+
+    // Check for FFmpeg
+    const ffmpegPath = path.join(__dirname, '..', 'api', 'ffmpeg');
+    if (fs.existsSync(ffmpegPath)) {
+      availableTools.push("('api/ffmpeg', 'ffmpeg')");
+      console.log('✅ FFmpeg found');
+    } else {
+      console.log('⚠️  FFmpeg not found');
+    }
+
+    // Check for yt-dlp
+    const ytdlpPath = path.join(venvBin, 'yt-dlp');
+    if (fs.existsSync(ytdlpPath)) {
+      availableTools.push("('venv/bin/yt-dlp', 'yt-dlp')");
+      console.log('✅ yt-dlp found');
+    } else {
+      console.log('⚠️  yt-dlp not found');
+    }
+
+    // Check for spotdl
+    const spotdlPath = path.join(venvBin, 'spotdl');
+    if (fs.existsSync(spotdlPath)) {
+      availableTools.push("('venv/bin/spotdl', 'spotdl')");
+      console.log('✅ spotdl found');
+    } else {
+      console.log('⚠️  spotdl not found');
+    }
+
+    // Check for scdl
+    const scdlPath = path.join(venvBin, 'scdl');
+    if (fs.existsSync(scdlPath)) {
+      availableTools.push("('venv/bin/scdl', 'scdl')");
+      console.log('✅ scdl found');
+    } else {
+      console.log('⚠️  scdl not found');
+    }
+
     const specContent = `# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
@@ -21,10 +65,7 @@ a = Analysis(
     ['api/api_server.py'],
     pathex=[],
     binaries=[
-        ('api/ffmpeg', 'ffmpeg'),
-        ('venv/bin/yt-dlp', 'yt-dlp'),
-        ('venv/bin/spotdl', 'spotdl'),
-        ('venv/bin/scdl', 'scdl'),
+        ${availableTools.join(',\n        ')}
     ],
     datas=[
         ('api/database.py', '.'),
@@ -100,7 +141,14 @@ coll = COLLECT(
 
     // Run PyInstaller
     console.log('📦 Step 3: Building PyInstaller bundle...');
-    execSync('pyinstaller all-dlp.spec', { stdio: 'inherit' });
+    try {
+      execSync('pyinstaller all-dlp.spec', { stdio: 'inherit' });
+      console.log('✅ PyInstaller bundle created successfully!');
+      console.log('📦 Bundle location: dist/all-dlp-api/');
+    } catch (error) {
+      console.error('❌ Error creating PyInstaller bundle:', error.message);
+      process.exit(1);
+    }
 
     // Create launcher script
     console.log('📝 Step 4: Creating launcher script...');
