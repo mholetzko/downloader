@@ -8,14 +8,6 @@ async function createPyInstallerBundle() {
   try {
     // Install PyInstaller if not already installed
     console.log('📋 Step 1: Installing PyInstaller...');
-    try {
-      execSync('pip install pyinstaller', { stdio: 'inherit' });
-    } catch (error) {
-      console.log('PyInstaller already installed or installation failed');
-    }
-
-    // Create spec file for PyInstaller
-    console.log('📋 Step 2: Creating PyInstaller spec...');
     
     // Detect target architecture from environment
     const targetArch = process.env.MATRIX_ARCH || process.env.ARCH || 'arm64';
@@ -28,6 +20,20 @@ async function createPyInstallerBundle() {
 
     console.log(`🔧 Using virtual environment: ${venvBin}`);
 
+    try {
+      const pipCmd = targetArch === 'x64' 
+        ? 'arch -x86_64 venv-x64/bin/pip install pyinstaller'
+        : 'venv-arm64/bin/pip install pyinstaller';
+      
+      console.log(`🔨 Installing PyInstaller: ${pipCmd}`);
+      execSync(pipCmd, { stdio: 'inherit' });
+    } catch (error) {
+      console.log('PyInstaller already installed or installation failed');
+    }
+
+    // Create spec file for PyInstaller
+    console.log('📋 Step 2: Creating PyInstaller spec...');
+    
     // Check which tools are available
     const availableTools = [];
 
@@ -157,8 +163,8 @@ coll = COLLECT(
     try {
       // Use architecture-specific PyInstaller command
       const pyinstallerCmd = targetArch === 'x64' 
-        ? 'arch -x86_64 pyinstaller all-dlp.spec'
-        : 'pyinstaller all-dlp.spec';
+        ? 'arch -x86_64 venv-x64/bin/pyinstaller all-dlp.spec'
+        : 'venv-arm64/bin/pyinstaller all-dlp.spec';
       
       console.log(`🔨 Running: ${pyinstallerCmd}`);
       execSync(pyinstallerCmd, { stdio: 'inherit' });
