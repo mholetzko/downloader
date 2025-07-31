@@ -64,6 +64,11 @@ class AudioSettings {
                 <p>Make your downloaded music louder and more consistent</p>
             </div>
             
+            <div class="development-notice">
+                <div class="dev-badge">🚧 UNDER DEVELOPMENT</div>
+                <p>Audio loudness features are currently being tested and may not work as expected.</p>
+            </div>
+            
             <div class="setting-group">
                 <label for="volume-boost">Volume Boost:</label>
                 <div class="volume-control">
@@ -211,6 +216,32 @@ class AudioSettings {
                 padding: 2rem;
                 margin: 20px 0;
                 color: #fff;
+            }
+            
+            .development-notice {
+                background: #2d1b0e;
+                border: 1px solid #f59e0b;
+                border-radius: 6px;
+                padding: 12px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            .dev-badge {
+                display: inline-block;
+                background: #f59e0b;
+                color: #111;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+            
+            .development-notice p {
+                margin: 0;
+                color: #fbbf24;
+                font-size: 0.9rem;
             }
 
             .settings-header h3 {
