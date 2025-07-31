@@ -87,6 +87,10 @@ jobs:
           
       - name: Build Electron app
         run: |
+          # First build the app bundle (without --dir to create the .app)
+          npm run dist -- --mac --${{ matrix.arch }}
+          
+          # Then also create the unpacked version for testing
           npm run dist -- --mac --${{ matrix.arch }} --dir
           
       - name: Test build artifacts

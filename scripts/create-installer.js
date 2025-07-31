@@ -16,6 +16,24 @@ const MAC_DIR = path.join(DIST_DIR, 'mac');
 const INSTALLER_DIR = path.join(DIST_DIR, 'installer');
 const SCRIPTS_DIR = path.join(__dirname, '..', 'scripts', 'installer');
 
+// Debug: List dist directory contents
+console.log('🔍 Debug: Checking dist directory contents...');
+if (fs.existsSync(DIST_DIR)) {
+  const distContents = fs.readdirSync(DIST_DIR);
+  console.log(`📁 dist/ contents: ${distContents.join(', ')}`);
+  
+  // Check each subdirectory
+  distContents.forEach(item => {
+    const itemPath = path.join(DIST_DIR, item);
+    if (fs.statSync(itemPath).isDirectory()) {
+      const subContents = fs.readdirSync(itemPath);
+      console.log(`📁 dist/${item}/ contents: ${subContents.join(', ')}`);
+    }
+  });
+} else {
+  console.log('❌ dist/ directory does not exist');
+}
+
 // Ensure directories exist
 [INSTALLER_DIR, SCRIPTS_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) {
@@ -25,18 +43,37 @@ const SCRIPTS_DIR = path.join(__dirname, '..', 'scripts', 'installer');
 
 // Find the app bundle
 function findAppBundle() {
-  if (!fs.existsSync(MAC_DIR)) {
-    throw new Error('Mac build directory not found. Run npm run dist first.');
+  // Check multiple possible locations for the app bundle
+  const possiblePaths = [
+    MAC_DIR,
+    path.join(DIST_DIR, 'mac-arm64'),
+    path.join(DIST_DIR, 'mac-x64')
+  ];
+  
+  for (const macPath of possiblePaths) {
+    if (fs.existsSync(macPath)) {
+      const files = fs.readdirSync(macPath);
+      const appBundle = files.find(file => file.endsWith('.app'));
+      
+      if (appBundle) {
+        return path.join(macPath, appBundle);
+      }
+    }
   }
   
-  const files = fs.readdirSync(MAC_DIR);
-  const appBundle = files.find(file => file.endsWith('.app'));
+  // If no app bundle found, provide detailed error information
+  console.error('❌ App bundle not found. Searched in:');
+  possiblePaths.forEach(path => {
+    if (fs.existsSync(path)) {
+      console.error(`   ✅ ${path} (exists)`);
+      const files = fs.readdirSync(path);
+      console.error(`   📁 Contents: ${files.join(', ')}`);
+    } else {
+      console.error(`   ❌ ${path} (not found)`);
+    }
+  });
   
-  if (!appBundle) {
-    throw new Error('No .app bundle found in dist/mac');
-  }
-  
-  return path.join(MAC_DIR, appBundle);
+  throw new Error('No .app bundle found. Run npm run dist first to build the application.');
 }
 
 // Create installer scripts
