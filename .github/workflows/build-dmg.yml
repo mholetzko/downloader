@@ -86,6 +86,8 @@ jobs:
           npm run test-audio
           
       - name: Build Electron app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # First build the app bundle (without --dir to create the .app)
           npm run dist -- --mac --${{ matrix.arch }}
