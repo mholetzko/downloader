@@ -545,4 +545,72 @@ footer {
     .features {
         grid-template-columns: 1fr;
     }
+}
+
+/* File action buttons */
+.folder-btn, .redownload-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.folder-btn {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.folder-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+.redownload-btn {
+    background: #f59e0b;
+    color: white;
+    border: 1px solid #d97706;
+}
+
+.redownload-btn:hover {
+    background: #d97706;
+    border-color: #b45309;
+}
+
+/* File status styles */
+.file-missing {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.missing-text {
+    color: #dc2626;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.downloading-text {
+    color: #3b82f6;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.failed-text {
+    color: #dc2626;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.pending-text {
+    color: #6b7280;
+    font-size: 0.8rem;
+    font-weight: 500;
 } 

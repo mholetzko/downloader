@@ -366,6 +366,56 @@ ipcMain.handle('redownload-file', async (event, downloadId) => {
     }
 });
 
+ipcMain.handle('get-audio-settings', async (event) => {
+    if (!apiServerReady) {
+        return { success: false, error: 'API server not ready' };
+    }
+    
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/audio-settings', {
+            method: 'GET'
+        });
+        
+        if (response.ok) {
+            const settings = await response.json();
+            return { success: true, settings: settings };
+        } else {
+            const error = await response.text();
+            return { success: false, error: error };
+        }
+    } catch (error) {
+        console.error('Get audio settings error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('update-audio-settings', async (event, settings) => {
+    if (!apiServerReady) {
+        return { success: false, error: 'API server not ready' };
+    }
+    
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/audio-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            return { success: true, ...result };
+        } else {
+            const error = await response.text();
+            return { success: false, error: error };
+        }
+    } catch (error) {
+        console.error('Update audio settings error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
 ipcMain.handle('clear-database', async (event) => {
     if (!apiServerReady) {
         return { success: false, error: 'API server not ready' };

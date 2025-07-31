@@ -48,6 +48,26 @@ class DownloadDatabase:
                 )
             ''')
             
+            # Create audio_settings table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS audio_settings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    volume_boost REAL DEFAULT 2.0,
+                    normalize_loudness BOOLEAN DEFAULT 1,
+                    target_lufs REAL DEFAULT -16.0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Insert default audio settings if table is empty
+            cursor.execute('SELECT COUNT(*) FROM audio_settings')
+            if cursor.fetchone()[0] == 0:
+                cursor.execute('''
+                    INSERT INTO audio_settings (volume_boost, normalize_loudness, target_lufs)
+                    VALUES (2.0, 1, -16.0)
+                ''')
+            
             # Add album column if it doesn't exist (for existing databases)
             try:
                 cursor.execute('ALTER TABLE downloads ADD COLUMN album TEXT')
@@ -216,5 +236,39 @@ class DownloadDatabase:
             raise
     
     def clearAllDownloads(self):
-        """Alias for clear_all_downloads"""
-        return self.clear_all_downloads() 
+        """Clear all downloads from the database"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM downloads')
+        conn.commit()
+    
+    def get_audio_settings(self):
+        """Get the current audio settings"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT volume_boost, normalize_loudness, target_lufs FROM audio_settings ORDER BY id DESC LIMIT 1')
+        row = cursor.fetchone()
+        if row:
+            return {
+                'volume_boost': row[0],
+                'normalize_loudness': bool(row[1]),
+                'target_lufs': row[2]
+            }
+        else:
+            # Return defaults if no settings found
+            return {
+                'volume_boost': 2.0,
+                'normalize_loudness': True,
+                'target_lufs': -16.0
+            }
+    
+    def update_audio_settings(self, volume_boost, normalize_loudness, target_lufs):
+        """Update the audio settings"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE audio_settings 
+            SET volume_boost = ?, normalize_loudness = ?, target_lufs = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = (SELECT MAX(id) FROM audio_settings)
+        ''', (volume_boost, 1 if normalize_loudness else 0, target_lufs))
+        conn.commit() 

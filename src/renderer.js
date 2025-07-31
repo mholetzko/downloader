@@ -324,7 +324,7 @@ function renderDownloads() {
                     let fileLink = '';
                     if (download.file_path && download.status === 'completed') {
                         const filename = download.file_path.split('/').pop();
-                        // Show a clean "Go to Folder" button instead of long filename
+                        // Show a clean "Open File" button for all completed downloads
                         fileLink = `<button class="folder-btn" onclick="openFileInSystem('${download.file_path}')" title="Open file: ${filename}">Open File</button>`;
                     } else if (download.status === 'file_missing') {
                         fileLink = `<div class="file-missing">
@@ -403,6 +403,8 @@ async function redownloadFile(downloadId) {
         showNotification('Re-download failed: ' + error.message, 'error');
     }
 }
+
+
 
 function getStatusText(status) {
     switch (status) {

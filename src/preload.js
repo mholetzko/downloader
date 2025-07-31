@@ -10,7 +10,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDownload: (downloadId) => ipcRenderer.invoke('get-download', downloadId),
   getDownloads: () => ipcRenderer.invoke('get-downloads'),
   deleteDownload: (downloadId) => ipcRenderer.invoke('delete-download', downloadId),
-  redownloadFile: (downloadId) => ipcRenderer.invoke('redownload-file', downloadId),
+    redownloadFile: (downloadId) => ipcRenderer.invoke('redownload-file', downloadId),
+  getAudioSettings: () => ipcRenderer.invoke('get-audio-settings'),
+  updateAudioSettings: (settings) => ipcRenderer.invoke('update-audio-settings', settings),
+ 
   clearDatabase: () => ipcRenderer.invoke('clear-database'),
   checkFfmpegStatus: () => ipcRenderer.invoke('checkFfmpegStatus'),
   checkApiStatus: () => ipcRenderer.invoke('checkApiStatus'),

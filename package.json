@@ -17,6 +17,7 @@
     "check-dependencies": "node scripts/check-dependencies.js",
     "check-compatibility": "node scripts/check-compatibility.js",
     "test": "node scripts/test-integration.js",
+    "test-audio": "node scripts/test-audio-features.js",
     "test-build": "node scripts/test-build.js",
     "test-installer": "node scripts/test-installer.js",
     "create-installer": "node scripts/create-installer.js",

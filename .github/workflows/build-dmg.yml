@@ -37,7 +37,6 @@ jobs:
       - name: Run compatibility tests
         run: |
           npm run check-compatibility
-          npm run test
         
       - name: Create Python virtual environment
         run: |
@@ -80,6 +79,12 @@ jobs:
             echo "Building Python bundle for arm64 architecture (universal Apple Silicon)"
           fi
           npm run bundle-python
+          
+      - name: Run integration tests
+        run: |
+          npm run test
+          npm run test-audio
+          
       - name: Build Electron app
         run: |
           npm run dist -- --mac --${{ matrix.arch }} --dir

@@ -65,6 +65,11 @@ class PurchaseSearchResponse(BaseModel):
     artist: str
     options: list[PurchaseOption]
 
+class AudioSettings(BaseModel):
+    volume_boost: float = 2.0  # Default 2x volume boost (6dB)
+    normalize_loudness: bool = True  # Enable loudness normalization
+    target_lufs: float = -16.0  # Target loudness in LUFS
+
 # Create downloads directory
 DOWNLOADS_DIR = Path.home() / "Downloads" / "all-dlp"
 DOWNLOADS_DIR.mkdir(exist_ok=True)
@@ -315,6 +320,85 @@ def extract_mp3_metadata(file_path: str) -> dict:
     
     return metadata
 
+def load_audio_settings() -> AudioSettings:
+    """Load audio settings from database or return defaults"""
+    try:
+        if db:
+            settings_data = db.get_audio_settings()
+            audio_settings = AudioSettings(**settings_data)
+            logging.info(f"Loaded audio settings from database: {settings_data}")
+            return audio_settings
+        else:
+            logging.warning("Database not available, using default audio settings")
+            return AudioSettings()
+    except Exception as e:
+        logging.warning(f"Failed to load audio settings from database, using defaults: {e}")
+        return AudioSettings()
+
+def normalize_audio_volume(file_path: str, settings: AudioSettings = None) -> bool:
+    """Normalize and amplify audio volume using FFmpeg"""
+    if settings is None:
+        settings = load_audio_settings()  # Load current settings from database
+    
+    try:
+        ffmpeg_path = get_tool_path('ffmpeg')
+        if not ffmpeg_path:
+            logging.warning("FFmpeg not found, skipping audio normalization")
+            return False
+        
+        # Create temporary file for processing
+        temp_file = str(file_path) + ".temp.mp3"
+        
+        # Build FFmpeg audio filter
+        audio_filter = ""
+        if settings.normalize_loudness:
+            audio_filter += f"loudnorm=I={settings.target_lufs}:TP=-1.5:LRA=11"
+        
+        if settings.volume_boost > 1.0:
+            if audio_filter:
+                audio_filter += f",volume={settings.volume_boost}"
+            else:
+                audio_filter = f"volume={settings.volume_boost}"
+        
+        # If no audio processing needed, skip
+        if not audio_filter:
+            logging.info("No audio processing needed, skipping normalization")
+            return True
+        
+        # FFmpeg command to normalize and amplify audio
+        cmd = [
+            ffmpeg_path,
+            "-i", str(file_path),
+            "-af", audio_filter,
+            "-ar", "44100",  # Sample rate
+            "-b:a", "320k",  # Bitrate
+            "-y",  # Overwrite output
+            temp_file
+        ]
+        
+        logging.info(f"Normalizing audio volume: {' '.join(cmd)}")
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            # Replace original file with normalized version
+            shutil.move(temp_file, str(file_path))
+            logging.info(f"Audio normalization completed for {file_path}")
+            return True
+        else:
+            logging.error(f"Audio normalization failed: {result.stderr}")
+            # Clean up temp file if it exists
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+            return False
+            
+    except Exception as e:
+        logging.error(f"Error during audio normalization: {e}")
+        # Clean up temp file if it exists
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+        return False
+
 def generate_filename_from_metadata(metadata: dict, download_id: str, fallback_title: str = None) -> str:
     """Generate a clean filename from MP3 metadata"""
     title = metadata.get('title') or fallback_title or "Unknown"
@@ -440,7 +524,8 @@ def download_youtube_sync(url: str, download_id: str, start_time: float):
             ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
         else:
             # For single tracks, use the original logic
-        output_template = str(temp_dir / f"download.%(ext)s")
+            output_template = str(temp_dir / f"download.%(ext)s")
+            
         process = subprocess.Popen([
             yt_dlp_path, url,
             "--no-playlist",
@@ -486,6 +571,14 @@ def download_youtube_sync(url: str, download_id: str, start_time: float):
                 
                 # Move file to final location
                 shutil.move(str(src_file), str(final_path))
+                
+                # Normalize and amplify audio volume
+                logging.info(f"Starting audio normalization for {final_path}")
+                if normalize_audio_volume(str(final_path)):
+                    logging.info(f"Audio normalization completed successfully")
+                else:
+                    logging.warning(f"Audio normalization failed, keeping original file")
+                
                 file_size = final_path.stat().st_size
                 
                 # Update database with metadata if available
@@ -588,6 +681,14 @@ def download_spotify_sync(url: str, download_id: str, start_time: float):
                 
                 # Move file to final location
                 shutil.move(str(src_file), str(final_path))
+                
+                # Normalize and amplify audio volume
+                logging.info(f"Starting audio normalization for {final_path}")
+                if normalize_audio_volume(str(final_path)):
+                    logging.info(f"Audio normalization completed successfully")
+                else:
+                    logging.warning(f"Audio normalization failed, keeping original file")
+                
                 file_size = final_path.stat().st_size
                 
                 # Update database with metadata if available
@@ -672,6 +773,14 @@ def download_soundcloud_sync(url: str, download_id: str, start_time: float):
                 
                 # Move file to final location
                 shutil.move(str(downloaded_file), str(final_path))
+                
+                # Normalize and amplify audio volume
+                logging.info(f"Starting audio normalization for {final_path}")
+                if normalize_audio_volume(str(final_path)):
+                    logging.info(f"Audio normalization completed successfully")
+                else:
+                    logging.warning(f"Audio normalization failed, keeping original file")
+                
                 file_size = final_path.stat().st_size
                 
                 # Update database with metadata if available
@@ -809,6 +918,40 @@ async def clear_database():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/audio-settings")
+async def update_audio_settings(settings: AudioSettings):
+    """Update audio settings"""
+    try:
+        if db:
+            db.update_audio_settings(
+                settings.volume_boost,
+                settings.normalize_loudness,
+                settings.target_lufs
+            )
+            logging.info(f"Audio settings updated in database: {settings.model_dump()}")
+            return {"status": "success", "message": "Audio settings updated successfully"}
+        else:
+            logging.error("Database not available for saving audio settings")
+            return {"status": "error", "message": "Database not available"}
+    except Exception as e:
+        logging.error(f"Failed to update audio settings: {e}")
+        return {"status": "error", "message": f"Failed to update audio settings: {str(e)}"}
+
+@app.get("/api/audio-settings")
+async def get_audio_settings():
+    """Get current audio settings"""
+    try:
+        if db:
+            settings_data = db.get_audio_settings()
+            logging.info(f"Retrieved audio settings from database: {settings_data}")
+            return settings_data
+        else:
+            logging.warning("Database not available, returning default audio settings")
+            return AudioSettings().model_dump()
+    except Exception as e:
+        logging.error(f"Failed to get audio settings: {e}")
+        return AudioSettings().model_dump()
+
 @app.post("/api/purchase-search", response_model=PurchaseSearchResponse)
 async def search_purchase_options(request: PurchaseSearchRequest):
     """Search for legal purchase options for a song"""
@@ -894,6 +1037,74 @@ async def search_purchase_options(request: PurchaseSearchRequest):
     except Exception as e:
         logging.error(f"Error searching purchase options: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+class VolumeBoostRequest(BaseModel):
+    volume_boost: float = 2.0
+
+@app.post("/api/download/{download_id}/make-louder")
+async def make_download_louder(download_id: str, request: VolumeBoostRequest):
+    """Make an existing downloaded file louder with specified volume boost"""
+    try:
+        if not db:
+            return {"status": "error", "message": "Database not available"}
+        
+        # Get the download record
+        download = db.get_download(download_id)
+        if not download:
+            return {"status": "error", "message": "Download not found"}
+        
+        # Check if it's a playlist (folder)
+        file_path = download.get('file_path', '')
+        if not file_path:
+            return {"status": "error", "message": "No file path found for download"}
+        
+        # Check if it's a folder (playlist)
+        if os.path.isdir(file_path):
+            return {"status": "error", "message": "Cannot make playlists louder - only individual tracks are supported"}
+        
+        # Check if file exists
+        if not os.path.exists(file_path):
+            return {"status": "error", "message": "File not found on disk"}
+        
+        # Check if it's an MP3 file
+        if not file_path.lower().endswith('.mp3'):
+            return {"status": "error", "message": "Only MP3 files can be made louder"}
+        
+        # Validate volume boost
+        volume_boost = request.volume_boost
+        if volume_boost < 1.0 or volume_boost > 5.0:
+            return {"status": "error", "message": "Volume boost must be between 1.0x and 5.0x"}
+        
+        # Create custom audio settings with the specified volume boost
+        settings = AudioSettings(
+            volume_boost=volume_boost,
+            normalize_loudness=True,
+            target_lufs=-16.0
+        )
+        
+        # Make the file louder
+        logging.info(f"Making file louder: {file_path} with {volume_boost}x boost")
+        success = normalize_audio_volume(file_path, settings)
+        
+        if success:
+            # Update file size in database
+            new_size = os.path.getsize(file_path)
+            db.update_status(download_id, "completed", file_path=file_path, file_size=new_size)
+            
+            logging.info(f"Successfully made file louder: {file_path} with {volume_boost}x boost")
+            return {
+                "status": "success", 
+                "message": f"File volume updated to {volume_boost}x successfully",
+                "volume_boost": volume_boost,
+                "normalize_loudness": settings.normalize_loudness,
+                "target_lufs": settings.target_lufs
+            }
+        else:
+            return {"status": "error", "message": "Failed to process audio file"}
+            
+    except Exception as e:
+        logging.error(f"Error making download louder: {e}")
+        return {"status": "error", "message": f"Error processing file: {str(e)}"}
 
 if __name__ == "__main__":
     try:
