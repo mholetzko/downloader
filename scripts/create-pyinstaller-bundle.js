@@ -187,6 +187,8 @@ console.log('📋 Step 3: Building PyInstaller bundle...');
 try {
   // Use architecture-specific PyInstaller command with universal settings
   let pyinstallerCmd;
+  let execOptions = { stdio: 'inherit' };
+  
   if (targetArch === 'x64') {
     pyinstallerCmd = 'arch -x86_64 venv-x64/bin/pyinstaller all-dlp.spec';
   } else {
@@ -197,11 +199,12 @@ try {
     env._PYTHON_HOST_PLATFORM = 'macosx-11.0-arm64';
     
     pyinstallerCmd = 'venv-arm64/bin/pyinstaller all-dlp.spec';
+    execOptions.env = env;
     console.log('🔧 Using universal ARM64 settings for M1/M2/M3 compatibility');
   }
   
   console.log(`🔨 Running: ${pyinstallerCmd}`);
-  execSync(pyinstallerCmd, { stdio: 'inherit', env: targetArch === 'arm64' ? env : undefined });
+  execSync(pyinstallerCmd, execOptions);
   console.log('✅ PyInstaller bundle created successfully!');
   console.log('📦 Bundle location: dist/all-dlp-api/');
 } catch (error) {
