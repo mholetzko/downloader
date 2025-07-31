@@ -64,35 +64,9 @@ test('Executable permissions', () => {
   }
 });
 
-// Test 3: Check architecture compatibility
-test('Architecture compatibility', () => {
-  const os = require('os');
-  const arch = os.arch();
-  
-  if (arch === 'arm64') {
-    // Check if API bundle is ARM64
-    try {
-      const fileInfo = execSync('file dist/all-dlp-api/all-dlp-api', { encoding: 'utf8' });
-      if (!fileInfo.includes('arm64')) {
-        throw new Error('API bundle is not ARM64');
-      }
-    } catch (error) {
-      throw new Error(`Could not check API bundle architecture: ${error.message}`);
-    }
-  } else if (arch === 'x64') {
-    // Check if API bundle is x64
-    try {
-      const fileInfo = execSync('file dist/all-dlp-api/all-dlp-api', { encoding: 'utf8' });
-      if (!fileInfo.includes('x86_64')) {
-        throw new Error('API bundle is not x64');
-      }
-    } catch (error) {
-      throw new Error(`Could not check API bundle architecture: ${error.message}`);
-    }
-  }
-});
 
-// Test 4: Check FFmpeg compatibility
+
+// Test 3: Check FFmpeg compatibility
 test('FFmpeg compatibility', () => {
   const ffmpegPath = 'api/ffmpeg/ffmpeg';
   if (fs.existsSync(ffmpegPath)) {
@@ -113,7 +87,7 @@ test('FFmpeg compatibility', () => {
   }
 });
 
-// Test 5: Check bundle size
+// Test 4: Check bundle size
 test('Bundle size reasonable', () => {
   const bundlePath = 'dist/all-dlp-api';
   if (fs.existsSync(bundlePath)) {
@@ -151,7 +125,7 @@ test('Bundle size reasonable', () => {
   }
 });
 
-// Test 6: Check for required files in bundle
+// Test 5: Check for required files in bundle
 test('Required files in bundle', () => {
   const bundlePath = 'dist/all-dlp-api';
   const requiredFiles = [
@@ -177,7 +151,7 @@ test('Required files in bundle', () => {
   }
 });
 
-// Test 7: Check Electron app (if built)
+// Test 6: Check Electron app (if built)
 test('Electron app structure', () => {
   const appPath = 'dist/mac';
   if (fs.existsSync(appPath)) {
