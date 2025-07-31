@@ -11,13 +11,31 @@ A desktop application that combines multiple download libraries into a single, s
 
 ## Quick Start
 
-1. Download the latest release for your architecture:
-   - **Intel Macs**: `ALL-DLP-x64-*.dmg`
-   - **Apple Silicon**: `ALL-DLP-arm64-*.dmg`
+### **For Users:**
+1. **Download the installer** from the [Releases](https://github.com/your-username/ALL-DLP/releases) page
+2. **Choose your architecture**:
+   - **ARM64**: Apple Silicon (M1, M2, M3) - `ALL-DLP-*-Installer-arm64.pkg`
+   - **x64**: Intel Macs - `ALL-DLP-*-Installer-x64.pkg`
+3. **Run the installer**: Double-click the `.pkg` file and follow the wizard
+4. **Launch ALL-DLP** from Applications
+5. **Enter a URL** from a supported platform
+6. **Downloads are saved** to `~/Downloads/all-dlp/`
 
-2. Install and run the application
-3. Enter a URL from a supported platform
-4. Downloads are saved to `~/Downloads/all-dlp/`
+### **For Developers:**
+```bash
+# Clone and setup
+git clone https://github.com/your-username/ALL-DLP.git
+cd ALL-DLP/electron-app
+npm install
+./setup.sh
+
+# Build and create installer
+npm run build
+npm run create-installer
+
+# Run locally
+npm start
+```
 
 ## Supported Platforms
 
@@ -27,8 +45,17 @@ A desktop application that combines multiple download libraries into a single, s
 
 ## System Requirements
 
-- macOS 10.15 or later
-- Internet connection for downloads
+- **macOS**: 11.0+ (Big Sur or later) for Apple Silicon, 10.15+ for Intel
+- **Internet connection** for downloads
+
+### 🔧 Apple Silicon Compatibility
+
+ALL-DLP is built with universal compatibility for Apple Silicon (M1, M2, M3) chips. The installer automatically handles all compatibility issues, but if you encounter problems:
+
+1. **Use the installer**: Download the `.pkg` installer instead of DMG
+2. **Run compatibility check**: `npm run check-compatibility`
+3. **Check Gatekeeper**: System Preferences → Security & Privacy
+4. **Manual fix**: `xattr -cr /Applications/ALL-DLP.app`
 
 ## Legal Disclaimer
 
@@ -38,6 +65,8 @@ This application is intended for **personal, private use only**. Users are respo
 
 - [API Documentation](api/README.md) - Backend API details
 - [Frontend Architecture](src/README.md) - Electron app structure
+- [Installer Guide](INSTALLER.md) - Professional installer system
+- [Testing Guide](TESTING.md) - Comprehensive testing suite
 
 ## License
 

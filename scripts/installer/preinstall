@@ -1,0 +1,35 @@
+#!/bin/bash
+# Preinstall script for ALL-DLP
+
+echo "🔧 ALL-DLP Installer - Pre-installation Setup"
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+  echo "❌ This installer must be run as root (use sudo)"
+  exit 1
+fi
+
+# Check macOS version
+MACOS_VERSION=$(sw_vers -productVersion)
+echo "📋 macOS Version: $MACOS_VERSION"
+
+# Check architecture
+ARCH=$(uname -m)
+echo "🏗️  Architecture: $ARCH"
+
+# Remove any existing installation
+if [ -d "/Applications/ALL-DLP.app" ]; then
+  echo "🗑️  Removing existing installation..."
+  rm -rf "/Applications/ALL-DLP.app"
+fi
+
+# Create necessary directories
+echo "📁 Creating directories..."
+mkdir -p "/Library/Application Support/ALL-DLP"
+mkdir -p "/Library/Logs/ALL-DLP"
+
+# Set proper permissions
+chmod 755 "/Library/Application Support/ALL-DLP"
+chmod 755 "/Library/Logs/ALL-DLP"
+
+echo "✅ Pre-installation setup complete"

@@ -46,7 +46,7 @@ cd "\\$SCRIPT_DIR"
 # Start the bundled API server
 "\\$SCRIPT_DIR/all-dlp-api/all-dlp-api"
 `;
-
+    
     fs.writeFileSync('dist/launcher.sh', launcherContent);
     execSync('chmod +x dist/launcher.sh', { stdio: 'inherit' });
 

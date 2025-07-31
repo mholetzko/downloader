@@ -34,6 +34,11 @@ jobs:
       - name: Download FFmpeg
         run: npm run download-ffmpeg
         
+      - name: Run compatibility tests
+        run: |
+          npm run check-compatibility
+          npm run test
+        
       - name: Create Python virtual environment
         run: |
           # Create architecture-specific virtual environment
@@ -68,16 +73,30 @@ jobs:
             export _PYTHON_HOST_PLATFORM="macosx-10.9-x86_64"
             echo "Building Python bundle for x64 architecture"
           else
+            # For ARM64, use more universal settings for better M1/M2/M3 compatibility
             export ARCHFLAGS="-arch arm64"
             export _PYTHON_HOST_PLATFORM="macosx-11.0-arm64"
-            echo "Building Python bundle for arm64 architecture"
+            export MACOSX_DEPLOYMENT_TARGET="11.0"
+            echo "Building Python bundle for arm64 architecture (universal Apple Silicon)"
           fi
           npm run bundle-python
-      - name: Build and publish Electron app (DMG)
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Build Electron app
         run: |
-          npm run dist -- --mac --${{ matrix.arch }} --publish always
+          npm run dist -- --mac --${{ matrix.arch }} --dir
+          
+      - name: Test build artifacts
+        run: |
+          npm run test-build
+          
+      - name: Create installer package
+        run: |
+          npm run create-installer
+          
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALL-DLP-Installer-${{ matrix.arch }}
+          path: dist/installer/*.pkg
       - name: List build outputs
         run: |
           echo "Build outputs:"

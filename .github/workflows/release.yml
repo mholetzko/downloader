@@ -40,6 +40,11 @@ jobs:
       - name: Download FFmpeg
         run: npm run download-ffmpeg
         
+      - name: Run compatibility tests
+        run: |
+          npm run check-compatibility
+          npm run test
+        
       - name: Get version from package.json
         id: version
         run: |
@@ -95,17 +100,69 @@ jobs:
             export _PYTHON_HOST_PLATFORM="macosx-10.9-x86_64"
             echo "Building Python bundle for x64 architecture"
           else
+            # For ARM64, use more universal settings for better M1/M2/M3 compatibility
             export ARCHFLAGS="-arch arm64"
             export _PYTHON_HOST_PLATFORM="macosx-11.0-arm64"
-            echo "Building Python bundle for arm64 architecture"
+            export MACOSX_DEPLOYMENT_TARGET="11.0"
+            echo "Building Python bundle for arm64 architecture (universal Apple Silicon)"
           fi
           npm run bundle-python
           
-      - name: Build and publish Electron app (DMG)
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Build Electron app
         run: |
-          npm run dist -- --mac --${{ matrix.arch }} --publish always
+          npm run dist -- --mac --${{ matrix.arch }} --dir
+          
+      - name: Test build artifacts
+        run: |
+          npm run test-build
+          
+      - name: Create installer package
+        run: |
+          npm run create-installer
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/installer/*.pkg
+          tag_name: v${{ steps.version.outputs.version }}
+          name: ALL-DLP v${{ steps.version.outputs.version }}
+          body: |
+            ## 🎵 ALL-DLP v${{ steps.version.outputs.version }}
+            
+            ### ✨ What's New
+            - Professional installer package (no more "corrupted" app issues!)
+            - Automatic compatibility fixes for Apple Silicon
+            - Improved cross-architecture support
+            - Enhanced user experience
+            
+            ### 🔧 Installation
+            1. Download the installer package for your architecture
+            2. Double-click to run the installer
+            3. Follow the installation wizard
+            4. Launch ALL-DLP from Applications
+            
+            ### 🏗️ Architecture Support
+            - **ARM64**: Apple Silicon (M1, M2, M3)
+            - **x64**: Intel Macs
+            
+            ### 🚀 Features
+            - Multi-platform music downloads
+            - Legal purchase search
+            - Automatic metadata extraction
+            - Cross-architecture compatibility
+            
+            ### 📋 System Requirements
+            - macOS 10.15 (Catalina) or later
+            - Intel (x86_64) or Apple Silicon (arm64) processor
+            - Internet connection for downloads
+            
+            ### 🔧 Uninstallation
+            Run: `sudo /Applications/ALL-DLP.app/Contents/Resources/uninstall.sh`
+            
+            ### ⚠️ Important
+            This software is for personal, private use only. Respect copyright and support content creators.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: List build outputs
         run: |

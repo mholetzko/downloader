@@ -36,6 +36,7 @@ class DownloadDatabase:
                     url TEXT NOT NULL,
                     title TEXT,
                     artist TEXT,
+                    album TEXT,
                     platform TEXT,
                     status TEXT DEFAULT 'pending',
                     progress REAL DEFAULT 0,
@@ -46,6 +47,14 @@ class DownloadDatabase:
                     error TEXT
                 )
             ''')
+            
+            # Add album column if it doesn't exist (for existing databases)
+            try:
+                cursor.execute('ALTER TABLE downloads ADD COLUMN album TEXT')
+                print("Added album column to existing database")
+            except sqlite3.OperationalError:
+                # Column already exists
+                pass
             
             conn.commit()
             print(f"Database initialized successfully at: {self.db_path}")
@@ -177,6 +186,20 @@ class DownloadDatabase:
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('UPDATE downloads SET title = ? WHERE id = ?', (title, id))
+        conn.commit()
+    
+    def update_artist(self, id, artist):
+        """Update the artist of a download"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE downloads SET artist = ? WHERE id = ?', (artist, id))
+        conn.commit()
+    
+    def update_album(self, id, album):
+        """Update the album of a download"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE downloads SET album = ? WHERE id = ?', (album, id))
         conn.commit()
     
     def clear_all_downloads(self):

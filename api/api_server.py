@@ -14,6 +14,17 @@ import uvicorn
 import shutil
 import logging
 import platform
+import urllib.parse
+
+# Add mutagen for MP3 metadata extraction
+try:
+    from mutagen import File
+    from mutagen.mp3 import MP3
+    from mutagen.id3 import ID3
+    MUTAGEN_AVAILABLE = True
+except ImportError:
+    MUTAGEN_AVAILABLE = False
+    logging.warning("mutagen not available - will use fallback metadata extraction")
 
 __version__ = "1.0.0"
 
@@ -37,6 +48,22 @@ class DownloadResponse(BaseModel):
     url: str
     status: str
     message: str
+
+class PurchaseSearchRequest(BaseModel):
+    title: str
+    artist: str = ""
+
+class PurchaseOption(BaseModel):
+    platform: str
+    name: str
+    url: str
+    price: str = ""
+    format: str = ""
+
+class PurchaseSearchResponse(BaseModel):
+    title: str
+    artist: str
+    options: list[PurchaseOption]
 
 # Create downloads directory
 DOWNLOADS_DIR = Path.home() / "Downloads" / "all-dlp"
@@ -192,6 +219,119 @@ def find_actual_downloaded_file() -> str:
 def clean_title_for_filename(title: str) -> str:
     return "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).strip().replace(' ', '_')
 
+def clean_extracted_title(title: str) -> str:
+    """Clean up titles extracted from download tools"""
+    if not title or title == "Unknown Title":
+        return title
+    
+    # Remove common prefixes
+    prefixes_to_remove = [
+        "Downloaded \"",
+        "Downloaded '",
+        "Found \"",
+        "Found '",
+        "Skipping ",
+        "Downloading ",
+        "Processing "
+    ]
+    
+    cleaned_title = title
+    for prefix in prefixes_to_remove:
+        if cleaned_title.startswith(prefix):
+            cleaned_title = cleaned_title[len(prefix):]
+            break
+    
+    # Remove trailing quotes and colons
+    cleaned_title = cleaned_title.rstrip('":\'')
+    
+    # Remove trailing text like " (file already exists)"
+    if " (file already exists)" in cleaned_title:
+        cleaned_title = cleaned_title.replace(" (file already exists)", "")
+    
+    # Clean up extra whitespace
+    cleaned_title = cleaned_title.strip()
+    
+    return cleaned_title if cleaned_title else "Unknown Title"
+
+def extract_mp3_metadata(file_path: str) -> dict:
+    """Extract metadata from MP3 file using mutagen"""
+    metadata = {
+        'title': None,
+        'artist': None,
+        'album': None,
+        'year': None,
+        'track': None
+    }
+    
+    if not MUTAGEN_AVAILABLE:
+        return metadata
+    
+    try:
+        audio = File(file_path)
+        if audio is None:
+            return metadata
+            
+        # Try to get ID3 tags first
+        if hasattr(audio, 'tags') and audio.tags:
+            tags = audio.tags
+            
+            # Common ID3 tag mappings
+            tag_mappings = {
+                'title': ['TIT2', 'title', 'TITLE'],
+                'artist': ['TPE1', 'artist', 'ARTIST', 'TPE2'],
+                'album': ['TALB', 'album', 'ALBUM'],
+                'year': ['TDRC', 'year', 'YEAR', 'TYER'],
+                'track': ['TRCK', 'track', 'TRACK']
+            }
+            
+            for field, possible_tags in tag_mappings.items():
+                for tag in possible_tags:
+                    if tag in tags:
+                        value = tags[tag]
+                        if hasattr(value, 'text'):
+                            value = value.text[0] if value.text else None
+                        if value and str(value).strip():
+                            metadata[field] = str(value).strip()
+                            break
+            
+            # If no ID3 tags, try generic tags
+            if not any(metadata.values()):
+                for key in metadata.keys():
+                    if key in tags:
+                        value = tags[key]
+                        if hasattr(value, 'text'):
+                            value = value.text[0] if value.text else None
+                        if value and str(value).strip():
+                            metadata[key] = str(value).strip()
+        
+        # Fallback: try to get basic info
+        if hasattr(audio, 'info'):
+            info = audio.info
+            if hasattr(info, 'length'):
+                metadata['duration'] = info.length
+        
+    except Exception as e:
+        logging.warning(f"Error extracting MP3 metadata from {file_path}: {e}")
+    
+    return metadata
+
+def generate_filename_from_metadata(metadata: dict, download_id: str, fallback_title: str = None) -> str:
+    """Generate a clean filename from MP3 metadata"""
+    title = metadata.get('title') or fallback_title or "Unknown"
+    artist = metadata.get('artist')
+    
+    # Clean the title and artist
+    clean_title = clean_title_for_filename(title)
+    clean_artist = clean_title_for_filename(artist) if artist else None
+    
+    # Generate filename
+    if clean_artist:
+        filename = f"{clean_artist}-{clean_title}-{download_id}.mp3"
+    else:
+        filename = f"{clean_title}-{download_id}.mp3"
+    
+    return filename
+
 def is_soundcloud_playlist(url: str) -> bool:
     """Detect if a SoundCloud URL is a playlist (set)."""
     url_lower = url.lower()
@@ -266,6 +406,11 @@ def download_youtube_sync(url: str, download_id: str, start_time: float):
         env = get_env_with_ffmpeg()
         temp_dir = DOWNLOADS_DIR / f"tmp-{download_id}"
         temp_dir.mkdir(exist_ok=True)
+        
+        # Detect if this is a playlist
+        is_playlist = '/playlist?' in url or '/watch?v=' in url and '&list=' in url
+        playlist_id = get_playlist_id_from_url(url, 'youtube') if is_playlist else None
+        
         title_process = subprocess.run([
             yt_dlp_path, url, "--no-playlist", "--get-title"
         ], capture_output=True, text=True, env=env)
@@ -274,9 +419,27 @@ def download_youtube_sync(url: str, download_id: str, start_time: float):
         flush_logs()
         title = "Unknown Title"
         if title_process.returncode == 0:
-            title = title_process.stdout.strip()
+            raw_title = title_process.stdout.strip()
+            title = clean_extracted_title(raw_title)
+        
+        # For playlists, use a generic title instead of individual track titles
+        if is_playlist:
+            title = f"YouTube Playlist ({playlist_id})" if playlist_id else "YouTube Playlist"
+        
             if db:
                 db.update_title(download_id, title)
+        if is_playlist:
+            # For playlists, download all tracks
+            output_template = str(temp_dir / f"%(title)s.%(ext)s")
+            process = subprocess.Popen([
+                yt_dlp_path, url,
+                "--output", output_template,
+                "--extract-audio",
+                "--audio-format", "mp3",
+                "--audio-quality", "0"
+            ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
+        else:
+            # For single tracks, use the original logic
         output_template = str(temp_dir / f"download.%(ext)s")
         process = subprocess.Popen([
             yt_dlp_path, url,
@@ -302,13 +465,35 @@ def download_youtube_sync(url: str, download_id: str, start_time: float):
                     pass
         if process.returncode == 0:
             mp3_files = list(temp_dir.glob('*.mp3'))
-            if len(mp3_files) == 1:
+            if is_playlist and len(mp3_files) > 1:
+                # For playlists, move the entire folder
+                folder_name = f"youtube-playlist-{download_id}"
+                final_folder = DOWNLOADS_DIR / folder_name
+                shutil.move(str(temp_dir), str(final_folder))
+                file_size = sum(f.stat().st_size for f in final_folder.glob('*.mp3'))
+                if db:
+                    db.updateStatus(download_id, "completed", 100, str(final_folder), file_size)
+            elif len(mp3_files) == 1:
                 src_file = mp3_files[0]
-                clean_title = clean_title_for_filename(title)
-                final_name = f"{clean_title}-{download_id}.mp3"
+                
+                # Extract metadata from the downloaded MP3 file
+                metadata = extract_mp3_metadata(str(src_file))
+                logging.info(f"Extracted metadata: {metadata}")
+                
+                # Generate filename from metadata
+                final_name = generate_filename_from_metadata(metadata, download_id, title)
                 final_path = DOWNLOADS_DIR / final_name
+                
+                # Move file to final location
                 shutil.move(str(src_file), str(final_path))
                 file_size = final_path.stat().st_size
+                
+                # Update database with metadata if available
+                if metadata.get('artist') and db:
+                    db.update_artist(download_id, metadata['artist'])
+                if metadata.get('album') and db:
+                    db.update_album(download_id, metadata['album'])
+                
                 if db:
                     db.updateStatus(download_id, "completed", 100, str(final_path), file_size)
             else:
@@ -348,8 +533,14 @@ def download_spotify_sync(url: str, download_id: str, start_time: float):
         if title_process.returncode == 0:
             for line in title_process.stdout.strip().split('\n'):
                 if ' - ' in line and not line.startswith('Found') and not line.startswith('Error'):
-                    title = line.strip()
+                    raw_title = line.strip()
+                    title = clean_extracted_title(raw_title)
                     break
+        
+        # For playlists, use a generic title instead of individual track titles
+        if is_playlist:
+            title = f"Playlist ({playlist_id})" if playlist_id else "Playlist"
+        
         if db:
             db.update_title(download_id, title)
         # Download to temp dir
@@ -386,11 +577,25 @@ def download_spotify_sync(url: str, download_id: str, start_time: float):
                 # Notify user in API response (handled by status/file_path)
             elif len(mp3_files) == 1:
                 src_file = mp3_files[0]
-                clean_title = clean_title_for_filename(title)
-                final_name = f"{clean_title}-{download_id}.mp3"
+                
+                # Extract metadata from the downloaded MP3 file
+                metadata = extract_mp3_metadata(str(src_file))
+                logging.info(f"Extracted metadata: {metadata}")
+                
+                # Generate filename from metadata
+                final_name = generate_filename_from_metadata(metadata, download_id, title)
                 final_path = DOWNLOADS_DIR / final_name
+                
+                # Move file to final location
                 shutil.move(str(src_file), str(final_path))
                 file_size = final_path.stat().st_size
+                
+                # Update database with metadata if available
+                if metadata.get('artist') and db:
+                    db.update_artist(download_id, metadata['artist'])
+                if metadata.get('album') and db:
+                    db.update_album(download_id, metadata['album'])
+                
                 if db:
                     db.updateStatus(download_id, "completed", 100, str(final_path), file_size)
                 shutil.rmtree(temp_dir, ignore_errors=True)
@@ -426,6 +631,10 @@ def download_soundcloud_sync(url: str, download_id: str, start_time: float):
         )
         downloaded_file = None
         title = "Unknown Title"
+        
+        # For playlists, use a generic title
+        if is_playlist:
+            title = f"SoundCloud Playlist ({playlist_id})" if playlist_id else "SoundCloud Playlist"
         while True:
             output = process.stdout.readline()
             if output == '' and process.poll() is not None:
@@ -436,7 +645,10 @@ def download_soundcloud_sync(url: str, download_id: str, start_time: float):
             if output and output.strip().endswith(".mp3 Downloaded."):
                 filename = output.strip().replace(" Downloaded.", "")
                 downloaded_file = temp_dir / filename
-                title = filename.rsplit(".mp3", 1)[0]
+                if not is_playlist:
+                    # Only extract title for single tracks, not playlists
+                    raw_title = filename.rsplit(".mp3", 1)[0]
+                    title = clean_extracted_title(raw_title)
         process.wait()
         if process.returncode == 0:
             mp3_files = list(temp_dir.glob('*.mp3'))
@@ -450,11 +662,24 @@ def download_soundcloud_sync(url: str, download_id: str, start_time: float):
                     db.updateStatus(download_id, "completed", 100, str(final_folder), file_size)
                 # Notify user in API response (handled by status/file_path)
             elif len(mp3_files) == 1:
-                clean_title = clean_title_for_filename(title)
-                final_name = f"{clean_title}-{download_id}.mp3"
+                # Extract metadata from the downloaded MP3 file
+                metadata = extract_mp3_metadata(str(downloaded_file))
+                logging.info(f"Extracted metadata: {metadata}")
+                
+                # Generate filename from metadata
+                final_name = generate_filename_from_metadata(metadata, download_id, title)
                 final_path = DOWNLOADS_DIR / final_name
+                
+                # Move file to final location
                 shutil.move(str(downloaded_file), str(final_path))
                 file_size = final_path.stat().st_size
+                
+                # Update database with metadata if available
+                if metadata.get('artist') and db:
+                    db.update_artist(download_id, metadata['artist'])
+                if metadata.get('album') and db:
+                    db.update_album(download_id, metadata['album'])
+                
                 if db:
                     db.updateStatus(download_id, "completed", 100, str(final_path), file_size)
                     db.update_title(download_id, title)
@@ -582,6 +807,92 @@ async def clear_database():
         db.clearAllDownloads()
         return {"message": "All downloads cleared successfully"}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/purchase-search", response_model=PurchaseSearchResponse)
+async def search_purchase_options(request: PurchaseSearchRequest):
+    """Search for legal purchase options for a song"""
+    try:
+        title = request.title.strip()
+        artist = request.artist.strip()
+        
+        if not title:
+            raise HTTPException(status_code=400, detail="Title is required")
+        
+        # Build search query
+        search_query = title
+        if artist:
+            search_query = f"{artist} {title}"
+        
+        # Encode for URL
+        encoded_query = urllib.parse.quote(search_query)
+        
+        options = []
+        
+        # iTunes/Apple Music
+        itunes_url = f"https://music.apple.com/search?term={encoded_query}"
+        options.append(PurchaseOption(
+            platform="iTunes/Apple Music",
+            name="Apple Music",
+            url=itunes_url,
+            format="Digital"
+        ))
+        
+        # Amazon Music
+        amazon_url = f"https://www.amazon.com/s?k={encoded_query}&i=digital-music"
+        options.append(PurchaseOption(
+            platform="Amazon",
+            name="Amazon Music",
+            url=amazon_url,
+            format="Digital"
+        ))
+        
+        # Bandcamp (for independent artists)
+        bandcamp_url = f"https://bandcamp.com/search?q={encoded_query}"
+        options.append(PurchaseOption(
+            platform="Bandcamp",
+            name="Bandcamp",
+            url=bandcamp_url,
+            format="Digital/Physical"
+        ))
+        
+        # 7digital (for high-quality downloads)
+        seven_digital_url = f"https://www.7digital.com/search?q={encoded_query}"
+        options.append(PurchaseOption(
+            platform="7digital",
+            name="7digital",
+            url=seven_digital_url,
+            format="High-Quality Digital"
+        ))
+        
+
+        
+        # Beatport (for electronic music)
+        beatport_url = f"https://www.beatport.com/search?q={encoded_query}"
+        options.append(PurchaseOption(
+            platform="Beatport",
+            name="Beatport",
+            url=beatport_url,
+            format="Digital"
+        ))
+        
+        # YouTube Music (for streaming and some downloads)
+        youtube_music_url = f"https://music.youtube.com/search?q={encoded_query}"
+        options.append(PurchaseOption(
+            platform="YouTube Music",
+            name="YouTube Music",
+            url=youtube_music_url,
+            format="Streaming/Download"
+        ))
+        
+        return PurchaseSearchResponse(
+            title=title,
+            artist=artist,
+            options=options
+        )
+        
+    except Exception as e:
+        logging.error(f"Error searching purchase options: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

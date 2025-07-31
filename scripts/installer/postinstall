@@ -1,0 +1,138 @@
+#!/bin/bash
+# Postinstall script for ALL-DLP
+
+echo "🔧 ALL-DLP Installer - Post-installation Setup"
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+  echo "❌ This installer must be run as root (use sudo)"
+  exit 1
+fi
+
+# Set proper ownership and permissions
+echo "🔐 Setting permissions..."
+chown -R root:wheel "/Applications/ALL-DLP.app"
+chmod -R 755 "/Applications/ALL-DLP.app"
+
+# Remove quarantine attributes
+echo "🚫 Removing quarantine attributes..."
+xattr -cr "/Applications/ALL-DLP.app" 2>/dev/null || true
+
+# Create user directories
+for USER_HOME in /Users/*; do
+  if [ -d "$USER_HOME" ]; then
+    USERNAME=$(basename "$USER_HOME")
+    if [ "$USERNAME" != "Shared" ]; then
+      echo "👤 Setting up for user: $USERNAME"
+      
+      # Create user-specific directories
+      mkdir -p "$USER_HOME/.all-dlp"
+      mkdir -p "$USER_HOME/Downloads/all-dlp"
+      
+      # Set ownership
+      chown -R "$USERNAME:staff" "$USER_HOME/.all-dlp"
+      chown -R "$USERNAME:staff" "$USER_HOME/Downloads/all-dlp"
+      
+      # Set permissions
+      chmod 755 "$USER_HOME/.all-dlp"
+      chmod 755 "$USER_HOME/Downloads/all-dlp"
+    fi
+  fi
+done
+
+# Create launch agent for auto-start (optional)
+LAUNCH_AGENT_DIR="/Library/LaunchAgents"
+LAUNCH_AGENT_PLIST="$LAUNCH_AGENT_DIR/com.all-dlp.app.plist"
+
+if [ ! -f "$LAUNCH_AGENT_PLIST" ]; then
+  echo "🚀 Creating launch agent..."
+  cat > "$LAUNCH_AGENT_PLIST" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.all-dlp.app</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Applications/ALL-DLP.app/Contents/MacOS/ALL-DLP</string>
+    </array>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>
+EOF
+  chmod 644 "$LAUNCH_AGENT_PLIST"
+  chown root:wheel "$LAUNCH_AGENT_PLIST"
+fi
+
+# Create uninstaller
+UNINSTALLER="/Applications/ALL-DLP.app/Contents/Resources/uninstall.sh"
+cat > "$UNINSTALLER" << 'EOF'
+#!/bin/bash
+# ALL-DLP Uninstaller
+
+echo "🗑️  ALL-DLP Uninstaller"
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+  echo "❌ This uninstaller must be run as root (use sudo)"
+  exit 1
+fi
+
+# Remove the app
+if [ -d "/Applications/ALL-DLP.app" ]; then
+  echo "🗑️  Removing ALL-DLP application..."
+  rm -rf "/Applications/ALL-DLP.app"
+fi
+
+# Remove launch agent
+if [ -f "/Library/LaunchAgents/com.all-dlp.app.plist" ]; then
+  echo "🚫 Removing launch agent..."
+  rm -f "/Library/LaunchAgents/com.all-dlp.app.plist"
+fi
+
+# Remove user data (ask for confirmation)
+echo "📁 Remove user data? (y/N)"
+read -r response
+if [[ "$response" =~ ^[Yy]$ ]]; then
+  for USER_HOME in /Users/*; do
+    if [ -d "$USER_HOME" ]; then
+      USERNAME=$(basename "$USER_HOME")
+      if [ "$USERNAME" != "Shared" ]; then
+        echo "🗑️  Removing data for user: $USERNAME"
+        rm -rf "$USER_HOME/.all-dlp"
+        rm -rf "$USER_HOME/Downloads/all-dlp"
+      fi
+    fi
+  done
+fi
+
+# Remove system directories
+if [ -d "/Library/Application Support/ALL-DLP" ]; then
+  echo "🗑️  Removing system directories..."
+  rm -rf "/Library/Application Support/ALL-DLP"
+fi
+
+if [ -d "/Library/Logs/ALL-DLP" ]; then
+  rm -rf "/Library/Logs/ALL-DLP"
+fi
+
+echo "✅ ALL-DLP has been uninstalled"
+EOF
+
+chmod +x "$UNINSTALLER"
+
+echo "✅ Post-installation setup complete"
+echo ""
+echo "🎉 ALL-DLP has been installed successfully!"
+echo ""
+echo "📋 Installation Summary:"
+echo "   • Application: /Applications/ALL-DLP.app"
+echo "   • User Data: ~/.all-dlp/"
+echo "   • Downloads: ~/Downloads/all-dlp/"
+echo "   • Uninstaller: /Applications/ALL-DLP.app/Contents/Resources/uninstall.sh"
+echo ""
+echo "🚀 You can now launch ALL-DLP from Applications or Spotlight"

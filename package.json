@@ -15,6 +15,11 @@
     "download-ffmpeg": "node scripts/download-ffmpeg.js",
     "prebuild": "npm run check-dependencies && npm run download-ffmpeg",
     "check-dependencies": "node scripts/check-dependencies.js",
+    "check-compatibility": "node scripts/check-compatibility.js",
+    "test": "node scripts/test-integration.js",
+    "test-build": "node scripts/test-build.js",
+    "test-installer": "node scripts/test-installer.js",
+    "create-installer": "node scripts/create-installer.js",
     "bundle-python": "node scripts/create-pyinstaller-bundle.js",
     "bundle-full": "node scripts/create-bundle.js",
     "build-mac": "npm run bundle-python && npm run dist",
@@ -80,7 +85,11 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": null,
+      "entitlementsInherit": null
     },
     "win": {
       "target": [

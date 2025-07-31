@@ -161,3 +161,11 @@ $TEMP_DIR/
 ffmpeg/
 ffmpeg-archive.zip
 api/ffmpeg
+
+**/*/*.mp3
+**/*/*.m4a
+**/*/*.flac
+**/*/*.wav
+**/*/*.ogg
+**/*/*.aac
+**/*/*.m4b

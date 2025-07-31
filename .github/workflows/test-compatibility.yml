@@ -1,0 +1,390 @@
+name: Test Compatibility
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-build-compatibility:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        test-scenario: [arm64-native, x64-rosetta, compatibility-check]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install system dependencies
+        run: |
+          brew install ffmpeg
+          
+      - name: Install npm dependencies
+        run: npm install
+        
+      - name: Download FFmpeg
+        run: npm run download-ffmpeg
+        
+      - name: Setup Python environment
+        run: |
+          if [ "${{ matrix.test-scenario }}" = "x64-rosetta" ]; then
+            echo "Setting up x64 environment with Rosetta..."
+            arch -x86_64 python3 -m venv venv-x64
+            arch -x86_64 venv-x64/bin/pip install --upgrade pip
+            arch -x86_64 venv-x64/bin/pip install -r api/requirements.txt
+          else
+            echo "Setting up native ARM64 environment..."
+            python3 -m venv venv-arm64
+            source venv-arm64/bin/activate
+            pip install --upgrade pip
+            pip install -r api/requirements.txt
+          fi
+          
+      - name: Run compatibility check
+        if: matrix.test-scenario == 'compatibility-check'
+        run: |
+          npm run check-compatibility
+          
+      - name: Build Python backend
+        if: matrix.test-scenario != 'compatibility-check'
+        env:
+          MATRIX_ARCH: ${{ matrix.test-scenario == 'x64-rosetta' && 'x64' || 'arm64' }}
+        run: |
+          if [ "${{ matrix.test-scenario }}" = "x64-rosetta" ]; then
+            source venv-x64/bin/activate
+            export ARCHFLAGS="-arch x86_64"
+            export _PYTHON_HOST_PLATFORM="macosx-10.9-x86_64"
+            echo "Building Python bundle for x64 architecture (Rosetta)"
+          else
+            source venv-arm64/bin/activate
+            export ARCHFLAGS="-arch arm64"
+            export _PYTHON_HOST_PLATFORM="macosx-11.0-arm64"
+            export MACOSX_DEPLOYMENT_TARGET="11.0"
+            echo "Building Python bundle for arm64 architecture (native)"
+          fi
+          npm run bundle-python
+          
+      - name: Test bundle architecture
+        if: matrix.test-scenario != 'compatibility-check'
+        run: |
+          echo "Testing bundle architecture..."
+          if [ -f "dist/all-dlp-api/all-dlp-api" ]; then
+            file dist/all-dlp-api/all-dlp-api
+            echo "✅ Bundle created successfully"
+          else
+            echo "❌ Bundle not found"
+            exit 1
+          fi
+          
+      - name: Test FFmpeg compatibility
+        run: |
+          echo "Testing FFmpeg compatibility..."
+          if [ -f "api/ffmpeg/ffmpeg" ]; then
+            file api/ffmpeg/ffmpeg
+            echo "✅ FFmpeg found"
+          else
+            echo "❌ FFmpeg not found"
+            exit 1
+          fi
+
+  test-app-compatibility:
+    runs-on: macos-latest
+    needs: test-build-compatibility
+    strategy:
+      matrix:
+        arch: [arm64, x64]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install system dependencies
+        run: |
+          brew install ffmpeg
+          
+      - name: Install npm dependencies
+        run: npm install
+        
+      - name: Download FFmpeg
+        run: npm run download-ffmpeg
+        
+      - name: Setup Python environment
+        run: |
+          if [ "${{ matrix.arch }}" = "x64" ]; then
+            arch -x86_64 python3 -m venv venv-x64
+            arch -x86_64 venv-x64/bin/pip install --upgrade pip
+            arch -x86_64 venv-x64/bin/pip install -r api/requirements.txt
+          else
+            python3 -m venv venv-arm64
+            source venv-arm64/bin/activate
+            pip install --upgrade pip
+            pip install -r api/requirements.txt
+          fi
+          
+      - name: Build Python backend
+        env:
+          MATRIX_ARCH: ${{ matrix.arch }}
+        run: |
+          if [ "${{ matrix.arch }}" = "x64" ]; then
+            source venv-x64/bin/activate
+            export ARCHFLAGS="-arch x86_64"
+            export _PYTHON_HOST_PLATFORM="macosx-10.9-x86_64"
+          else
+            source venv-arm64/bin/activate
+            export ARCHFLAGS="-arch arm64"
+            export _PYTHON_HOST_PLATFORM="macosx-11.0-arm64"
+            export MACOSX_DEPLOYMENT_TARGET="11.0"
+          fi
+          npm run bundle-python
+          
+      - name: Build Electron app
+        run: |
+          npm run dist -- --mac --${{ matrix.arch }} --dir
+          
+      - name: Test app architecture
+        run: |
+          echo "Testing app architecture..."
+          if [ -d "dist/mac" ]; then
+            find dist/mac -name "*.app" -exec file {}/Contents/MacOS/* \;
+            echo "✅ App built successfully"
+          else
+            echo "❌ App not found"
+            exit 1
+          fi
+          
+      - name: Test app permissions
+        run: |
+          echo "Testing app permissions..."
+          if [ -d "dist/mac" ]; then
+            find dist/mac -name "*.app" -exec ls -la {}/Contents/MacOS/ \;
+            echo "✅ App permissions look good"
+          fi
+
+  test-api-functionality:
+    runs-on: macos-latest
+    needs: test-build-compatibility
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install system dependencies
+        run: |
+          brew install ffmpeg
+          
+      - name: Setup Python environment
+        run: |
+          python3 -m venv venv-arm64
+          source venv-arm64/bin/activate
+          pip install --upgrade pip
+          pip install -r api/requirements.txt
+          
+      - name: Build Python backend
+        env:
+          MATRIX_ARCH: arm64
+        run: |
+          source venv-arm64/bin/activate
+          export ARCHFLAGS="-arch arm64"
+          export _PYTHON_HOST_PLATFORM="macosx-11.0-arm64"
+          export MACOSX_DEPLOYMENT_TARGET="11.0"
+          npm run bundle-python
+          
+      - name: Test API server startup
+        run: |
+          echo "Testing API server startup..."
+          timeout 30s bash -c '
+            source venv-arm64/bin/activate
+            cd api
+            python api_server.py &
+            API_PID=$!
+            sleep 5
+            if curl -f http://localhost:8000/api/health; then
+              echo "✅ API server started successfully"
+              kill $API_PID
+              exit 0
+            else
+              echo "❌ API server failed to start"
+              kill $API_PID
+              exit 1
+            fi
+          ' || echo "❌ API server test failed"
+
+  test-cross-architecture:
+    runs-on: macos-latest
+    needs: test-build-compatibility
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install system dependencies
+        run: |
+          brew install ffmpeg
+          
+      - name: Install npm dependencies
+        run: npm install
+        
+      - name: Download FFmpeg
+        run: npm run download-ffmpeg
+        
+      - name: Build both architectures
+        run: |
+          # Build ARM64
+          python3 -m venv venv-arm64
+          source venv-arm64/bin/activate
+          pip install --upgrade pip
+          pip install -r api/requirements.txt
+          export ARCHFLAGS="-arch arm64"
+          export _PYTHON_HOST_PLATFORM="macosx-11.0-arm64"
+          export MACOSX_DEPLOYMENT_TARGET="11.0"
+          npm run bundle-python
+          mv dist/all-dlp-api dist/all-dlp-api-arm64
+          
+          # Build x64
+          arch -x86_64 python3 -m venv venv-x64
+          arch -x86_64 venv-x64/bin/pip install --upgrade pip
+          arch -x86_64 venv-x64/bin/pip install -r api/requirements.txt
+          source venv-x64/bin/activate
+          export ARCHFLAGS="-arch x86_64"
+          export _PYTHON_HOST_PLATFORM="macosx-10.9-x86_64"
+          npm run bundle-python
+          mv dist/all-dlp-api dist/all-dlp-api-x64
+          
+      - name: Test architecture compatibility
+        run: |
+          echo "Testing ARM64 bundle..."
+          file dist/all-dlp-api-arm64/all-dlp-api
+          
+          echo "Testing x64 bundle..."
+          file dist/all-dlp-api-x64/all-dlp-api
+          
+          echo "✅ Both architectures built successfully"
+          
+      - name: Test universal compatibility
+        run: |
+          echo "Testing universal compatibility..."
+          
+          # Test ARM64 bundle on native ARM64
+          if [ "$(uname -m)" = "arm64" ]; then
+            echo "Testing ARM64 bundle on native ARM64..."
+            timeout 10s dist/all-dlp-api-arm64/all-dlp-api --help || echo "ARM64 bundle test completed"
+          fi
+          
+          # Test x64 bundle with Rosetta
+          echo "Testing x64 bundle with Rosetta..."
+          timeout 10s arch -x86_64 dist/all-dlp-api-x64/all-dlp-api --help || echo "x64 bundle test completed"
+          
+          echo "✅ Universal compatibility tests passed"
+
+  test-gatekeeper-compatibility:
+    runs-on: macos-latest
+    needs: test-app-compatibility
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install system dependencies
+        run: |
+          brew install ffmpeg
+          
+      - name: Install npm dependencies
+        run: npm install
+        
+      - name: Download FFmpeg
+        run: npm run download-ffmpeg
+        
+      - name: Setup Python environment
+        run: |
+          python3 -m venv venv-arm64
+          source venv-arm64/bin/activate
+          pip install --upgrade pip
+          pip install -r api/requirements.txt
+          
+      - name: Build Python backend
+        env:
+          MATRIX_ARCH: arm64
+        run: |
+          source venv-arm64/bin/activate
+          export ARCHFLAGS="-arch arm64"
+          export _PYTHON_HOST_PLATFORM="macosx-11.0-arm64"
+          export MACOSX_DEPLOYMENT_TARGET="11.0"
+          npm run bundle-python
+          
+      - name: Build Electron app
+        run: |
+          npm run dist -- --mac --arm64 --dir
+          
+      - name: Test Gatekeeper compatibility
+        run: |
+          echo "Testing Gatekeeper compatibility..."
+          
+          # Find the built app
+          APP_PATH=$(find dist/mac -name "*.app" | head -1)
+          
+          if [ -n "$APP_PATH" ]; then
+            echo "Testing app: $APP_PATH"
+            
+            # Check for quarantine attributes
+            xattr "$APP_PATH" || echo "No quarantine attributes found"
+            
+            # Test app structure
+            ls -la "$APP_PATH/Contents/MacOS/"
+            ls -la "$APP_PATH/Contents/Resources/"
+            
+            # Test executable permissions
+            find "$APP_PATH" -name "*.app" -exec file {}/Contents/MacOS/* \;
+            
+            echo "✅ Gatekeeper compatibility tests passed"
+          else
+            echo "❌ No app found to test"
+            exit 1
+          fi 

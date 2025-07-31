@@ -122,6 +122,12 @@ function startApiServer() {
         const error = data.toString();
         console.log('API Server Error:', error);
         
+        // Check if server is ready (sometimes uvicorn logs to stderr)
+        if (error.includes('Uvicorn running') || error.includes('Application startup complete')) {
+            apiServerReady = true;
+            console.log('✅ API server is ready (from stderr)');
+        }
+        
         // Check for common errors
         if (error.includes('No module named')) {
             console.error('❌ Missing Python dependencies. Please run: ./setup.sh');
@@ -140,10 +146,21 @@ function startApiServer() {
         apiServerReady = false;
     });
     
-    // Wait a bit for server to start
-    setTimeout(() => {
+    // Wait a bit for server to start and verify it's actually ready
+    setTimeout(async () => {
         if (!apiServerReady) {
             console.log('API server startup timeout, but continuing...');
+        }
+        
+        // Verify server is actually responding
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/health');
+            if (response.ok) {
+                apiServerReady = true;
+                console.log('✅ API server verified as ready via health check');
+            }
+        } catch (error) {
+            console.log('API server health check failed:', error.message);
         }
     }, 3000);
 }
@@ -269,7 +286,7 @@ ipcMain.handle('checkApiStatus', async () => {
 
 ipcMain.handle('checkFfmpegStatus', async () => {
     try {
-            // Check for bundled FFmpeg first
+        // Check for bundled FFmpeg first
     const bundledFfmpeg = path.join(__dirname, '..', 'api', 'ffmpeg');
         if (fs.existsSync(bundledFfmpeg)) {
             console.log('Bundled FFmpeg found:', bundledFfmpeg);
@@ -373,6 +390,38 @@ ipcMain.handle('clear-database', async (event) => {
         }
     } catch (error) {
         console.error('Clear database error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('search-purchase-options', async (event, title, artist) => {
+    if (!apiServerReady) {
+        return { success: false, error: 'API server not ready' };
+    }
+    
+    try {
+        console.log('Searching purchase options for:', { title, artist });
+        
+        const response = await fetch('http://127.0.0.1:8000/api/purchase-search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: title,
+                artist: artist || ''
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            return { success: true, data: result };
+        } else {
+            const error = await response.text();
+            return { success: false, error: error };
+        }
+    } catch (error) {
+        console.error('Purchase search error:', error);
         return { success: false, error: error.message };
     }
 });

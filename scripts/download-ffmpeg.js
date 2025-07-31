@@ -26,14 +26,22 @@ async function setupFFmpeg() {
       if (ffmpegPath) {
         console.log(`Found system FFmpeg at: ${ffmpegPath}`);
         
-        // Copy to our ffmpeg directory
-        const targetPath = path.join(ffmpegDir, 'ffmpeg');
-        execSync(`cp "${ffmpegPath}" "${targetPath}"`);
-        fs.chmodSync(targetPath, '755');
-        
-        console.log(`FFmpeg copied to: ${targetPath}`);
-        console.log('FFmpeg setup complete!');
-        return;
+        // Check FFmpeg architecture compatibility
+        try {
+          const ffmpegArch = execSync(`file "${ffmpegPath}"`, { encoding: 'utf8' });
+          console.log(`FFmpeg architecture info: ${ffmpegArch.trim()}`);
+          
+          // Copy to our ffmpeg directory
+          const targetPath = path.join(ffmpegDir, 'ffmpeg');
+          execSync(`cp "${ffmpegPath}" "${targetPath}"`);
+          fs.chmodSync(targetPath, '755');
+          
+          console.log(`FFmpeg copied to: ${targetPath}`);
+          console.log('FFmpeg setup complete!');
+          return;
+        } catch (archError) {
+          console.log('Could not check FFmpeg architecture, but proceeding...');
+        }
       }
     } catch (error) {
       console.log('System FFmpeg not found, will use fallback...');

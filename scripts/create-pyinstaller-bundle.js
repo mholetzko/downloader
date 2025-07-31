@@ -57,7 +57,7 @@ try {
   console.log('PyInstaller already installed or installation failed');
 }
 
-console.log('📋 Step 2: Creating PyInstaller spec...');
+    console.log('📋 Step 2: Creating PyInstaller spec...');
 
 // Check which tools are available
 const availableTools = [];
@@ -100,8 +100,8 @@ if (fs.existsSync(scdlPath)) {
 } else {
   console.log('⚠️  scdl not found');
 }
-
-const specContent = `# -*- mode: python ; coding: utf-8 -*-
+    
+    const specContent = `# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
 
@@ -185,13 +185,23 @@ fs.writeFileSync('all-dlp.spec', specContent);
 console.log('📋 Step 3: Building PyInstaller bundle...');
 
 try {
-  // Use architecture-specific PyInstaller command
-  const pyinstallerCmd = targetArch === 'x64' 
-    ? 'arch -x86_64 venv-x64/bin/pyinstaller all-dlp.spec'
-    : 'venv-arm64/bin/pyinstaller all-dlp.spec';
+  // Use architecture-specific PyInstaller command with universal settings
+  let pyinstallerCmd;
+  if (targetArch === 'x64') {
+    pyinstallerCmd = 'arch -x86_64 venv-x64/bin/pyinstaller all-dlp.spec';
+  } else {
+    // For ARM64, use universal settings for better M1/M2/M3 compatibility
+    const env = { ...process.env };
+    env.MACOSX_DEPLOYMENT_TARGET = '11.0';
+    env.ARCHFLAGS = '-arch arm64';
+    env._PYTHON_HOST_PLATFORM = 'macosx-11.0-arm64';
+    
+    pyinstallerCmd = 'venv-arm64/bin/pyinstaller all-dlp.spec';
+    console.log('🔧 Using universal ARM64 settings for M1/M2/M3 compatibility');
+  }
   
   console.log(`🔨 Running: ${pyinstallerCmd}`);
-  execSync(pyinstallerCmd, { stdio: 'inherit' });
+  execSync(pyinstallerCmd, { stdio: 'inherit', env: targetArch === 'arm64' ? env : undefined });
   console.log('✅ PyInstaller bundle created successfully!');
   console.log('📦 Bundle location: dist/all-dlp-api/');
 } catch (error) {
@@ -199,10 +209,10 @@ try {
   process.exit(1);
 }
 
-// Create launcher script
+    // Create launcher script
 console.log('📝 Step 4: Creating launcher script...');
     
-const launcherScript = `#!/bin/bash
+    const launcherScript = `#!/bin/bash
 # ALL-DLP Launcher
 SCRIPT_DIR="\\$(dirname "\\$0")"
 cd "\\$SCRIPT_DIR"
@@ -230,13 +240,13 @@ echo "✅ Installation complete!"
 echo "You can now run: /Applications/ALL-DLP.app/Contents/Resources/launcher.sh"
 `;
 
-fs.writeFileSync('dist/launcher.sh', launcherScript);
-execSync('chmod +x dist/launcher.sh', { stdio: 'inherit' });
+    fs.writeFileSync('dist/launcher.sh', launcherScript);
+    execSync('chmod +x dist/launcher.sh', { stdio: 'inherit' });
 
-fs.writeFileSync('dist/install.sh', installerScript);
-execSync('chmod +x dist/install.sh', { stdio: 'inherit' });
+    fs.writeFileSync('dist/install.sh', installerScript);
+    execSync('chmod +x dist/install.sh', { stdio: 'inherit' });
 
-console.log('✅ PyInstaller bundle created successfully!');
+    console.log('✅ PyInstaller bundle created successfully!');
 console.log('📂 Bundle location: dist/all-dlp-api/');
-console.log('🚀 To install: sudo ./dist/install.sh');
+    console.log('🚀 To install: sudo ./dist/install.sh');
     

@@ -412,6 +412,12 @@
             table-layout: fixed;
         }
 
+        .downloads-table th:nth-child(1) { width: 35%; } /* Title */
+        .downloads-table th:nth-child(2) { width: 15%; } /* Source */
+        .downloads-table th:nth-child(3) { width: 15%; } /* Status */
+        .downloads-table th:nth-child(4) { width: 20%; } /* File */
+        .downloads-table th:nth-child(5) { width: 15%; } /* Actions */
+
         .downloads-table th {
             background: #111;
             color: #fff;
@@ -438,6 +444,8 @@
         .downloads-table tr:hover {
             background: #111;
         }
+
+
 
         .pagination-controls {
             display: flex;
@@ -535,7 +543,33 @@
         }
 
         .download-file {
-            min-width: 200px;
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        .folder-btn {
+            background: #111;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .folder-btn:hover {
+            background: #222;
+            border-color: #444;
+            color: #4ade80;
+            transform: translateY(-1px);
         }
 
         .file-link-btn {
@@ -789,7 +823,13 @@
             }
             
             .download-file {
-                min-width: 100px;
+                min-width: 80px;
+                max-width: 80px;
+            }
+            
+            .folder-btn {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.65rem;
             }
             
             .file-link-btn {
@@ -829,6 +869,12 @@
                     <span>System Status</span>
                     <div class="status-indicator"></div>
                 </button>
+                <button class="status-btn" id="purchaseSearchBtn" style="margin-left: 1rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span>Search Music</span>
+                </button>
                 <button class="status-btn" id="helpBtn" style="margin-left: 1rem;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
@@ -856,7 +902,7 @@
                 <div class="downloads-header">
                     <h2 class="section-title">Recent Downloads</h2>
                     <button class="clear-db-btn" id="clearDbBtn" style="display: none;">
-                        🗑️ Clear All
+                        Clear All
                     </button>
                 </div>
                 <div class="downloads-table-container">
@@ -879,7 +925,7 @@
                 <a href="#" class="footer-link" id="termsLink">Terms</a>
                 <span class="footer-sep">•</span>
                 <a href="https://www.buymeacoffee.com/mholetsgo" target="_blank" rel="noopener noreferrer" class="footer-link coffee-link">
-                    ☕ Buy Me a Coffee
+                    Buy Me a Coffee
                 </a>
             </div>
         </footer>
@@ -977,6 +1023,45 @@
             </div>
             <button class="modal-close" id="playlistConfirmCancel">Cancel</button>
             <button class="modal-close" id="playlistConfirmOk" style="margin-left: 1rem; background: #4ade80; color: #000;">Download Playlist</button>
+        </div>
+    </div>
+
+    <!-- Purchase Search Modal -->
+    <div class="modal" id="purchaseSearchModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Search Music</h3>
+            <div class="modal-text">
+                <p style="margin-bottom: 1rem; color: #ccc;">Support the artists you love by finding legal digital download options. We search across multiple platforms to help you purchase music legally.</p>
+                
+                <div style="background: #1a1a1a; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #333;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: #4ade80;">Supported Platforms:</h4>
+                    <ul style="margin: 0; padding-left: 1.5rem; color: #ccc; font-size: 0.875rem;">
+                        <li>iTunes/Apple Music (Digital)</li>
+                        <li>Amazon Music (Digital)</li>
+                        <li>Bandcamp (Digital/Physical)</li>
+                        <li>7digital (High-Quality Digital)</li>
+                        <li>Beatport (Digital - Electronic Music)</li>
+                        <li>YouTube Music (Streaming/Download)</li>
+                    </ul>
+                </div>
+                
+                <form id="purchaseSearchForm" style="margin: 1rem 0;">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="purchaseTitle" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #fff;">Song Title *</label>
+                        <input type="text" id="purchaseTitle" required placeholder="Enter song title..." style="width: 100%; padding: 0.75rem; border: 1px solid #333; border-radius: 4px; background: #222; color: #fff; font-size: 0.875rem;">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="purchaseArtist" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #fff;">Artist (optional)</label>
+                        <input type="text" id="purchaseArtist" placeholder="Enter artist name..." style="width: 100%; padding: 0.75rem; border: 1px solid #333; border-radius: 4px; background: #222; color: #fff; font-size: 0.875rem;">
+                    </div>
+                    <button type="submit" style="background: #4ade80; color: #000; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.2s;">Search Purchase Options</button>
+                </form>
+                <div id="purchaseResults" style="display: none;">
+                    <h4 style="margin: 1rem 0 0.5rem 0; color: #fff;">Purchase Options</h4>
+                    <div id="purchaseOptionsList" style="max-height: 400px; overflow-y: auto; border: 1px solid #333; border-radius: 6px; padding: 0.5rem; background: #1a1a1a;"></div>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeModal('purchaseSearchModal')">Close</button>
         </div>
     </div>
 

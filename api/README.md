@@ -68,4 +68,5 @@ The API is integrated with the Electron frontend and can be:
 - `GET /api/download/{download_id}` - Get specific download status
 - `DELETE /api/download/{download_id}` - Delete a download from history
 - `POST /api/download/{download_id}/redownload` - Re-download a file
-- `DELETE /api/downloads/clear` - Clear all download history 
+- `DELETE /api/downloads/clear` - Clear all download history
+- `POST /api/purchase-search` - Search for legal purchase options 

@@ -16,5 +16,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkApiStatus: () => ipcRenderer.invoke('checkApiStatus'),
   checkDownloadsFolder: () => ipcRenderer.invoke('checkDownloadsFolder'),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
-  openFileInSystem: (filePath) => ipcRenderer.invoke('open-file-in-system', filePath)
+  openFileInSystem: (filePath) => ipcRenderer.invoke('open-file-in-system', filePath),
+  searchPurchaseOptions: (title, artist) => ipcRenderer.invoke('search-purchase-options', title, artist)
 });

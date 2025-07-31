@@ -256,17 +256,34 @@ function renderDownloads() {
             </thead>
             <tbody>
                 ${pageDownloads.map((download, index) => {
-                    // Use title from database, fallback to filename extraction
+                    // Use title from database, with improved fallback logic
                     let title = 'Unknown Title';
                     
-                    // First priority: Use title from database
-                    if (download.title && download.title !== 'Unknown Title') {
-                        title = download.title;
+                    // First priority: Use title from database (if it exists and is not empty)
+                    if (download.title && download.title.trim() && download.title !== 'Unknown Title') {
+                        title = download.title.trim();
                     } else if (download.file_path && download.status === 'completed') {
                         // Fallback: Extract filename without extension and clean it up
                         const filename = download.file_path.split('/').pop();
-                        title = filename.replace(/\.[^/.]+$/, '') // Remove file extension
-                            .replace(/[-_]/g, ' ') // Replace dashes and underscores with spaces
+                        const filenameWithoutExt = filename.replace(/\.[^/.]+$/, ''); // Remove file extension
+                        
+                        // Remove download ID from filename if present
+                        const parts = filenameWithoutExt.split('-');
+                        if (parts.length > 1) {
+                            // Check if last part looks like a UUID
+                            const lastPart = parts[parts.length - 1];
+                            if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(lastPart)) {
+                                // Remove the UUID part
+                                title = parts.slice(0, -1).join('-');
+                            } else {
+                                title = filenameWithoutExt;
+                            }
+                        } else {
+                            title = filenameWithoutExt;
+                        }
+                        
+                        // Clean up the title
+                        title = title.replace(/[-_]/g, ' ') // Replace dashes and underscores with spaces
                             .replace(/\s+/g, ' ') // Replace multiple spaces with single space
                             .trim();
                         
@@ -307,8 +324,8 @@ function renderDownloads() {
                     let fileLink = '';
                     if (download.file_path && download.status === 'completed') {
                         const filename = download.file_path.split('/').pop();
-                        // Show full filename with UUID
-                        fileLink = `<button class="file-link-btn" onclick="openFileInSystem('${download.file_path}')" title="${filename}">📁 ${filename}</button>`;
+                        // Show a clean "Go to Folder" button instead of long filename
+                        fileLink = `<button class="folder-btn" onclick="openFileInSystem('${download.file_path}')" title="Open file: ${filename}">Open File</button>`;
                     } else if (download.status === 'file_missing') {
                         fileLink = `<div class="file-missing">
                             <span class="missing-text">File not found</span>
@@ -438,6 +455,163 @@ function showNotification(message, type = 'info') {
             notification.parentNode.removeChild(notification);
         }
     }, 3000);
+}
+
+// Purchase Search Functionality
+const purchaseSearchBtn = document.getElementById('purchaseSearchBtn');
+const purchaseSearchModal = document.getElementById('purchaseSearchModal');
+const purchaseSearchForm = document.getElementById('purchaseSearchForm');
+const purchaseTitleInput = document.getElementById('purchaseTitle');
+const purchaseArtistInput = document.getElementById('purchaseArtist');
+const purchaseResults = document.getElementById('purchaseResults');
+const purchaseOptionsList = document.getElementById('purchaseOptionsList');
+
+// Open purchase search modal
+purchaseSearchBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('purchaseSearchModal');
+    // Clear previous results
+    purchaseResults.style.display = 'none';
+    purchaseTitleInput.value = '';
+    purchaseArtistInput.value = '';
+});
+
+// Handle purchase search form submission
+purchaseSearchForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const title = purchaseTitleInput.value.trim();
+    const artist = purchaseArtistInput.value.trim();
+    
+    if (!title) {
+        showNotification('Please enter a song title', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = purchaseSearchForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Searching...';
+    submitBtn.disabled = true;
+    
+    try {
+        console.log('Searching purchase options for:', { title, artist });
+        
+        const result = await window.electronAPI.searchPurchaseOptions(title, artist);
+        
+        if (result.success) {
+            displayPurchaseOptions(result.data);
+            showNotification(`Found ${result.data.options.length} purchase options`, 'success');
+        } else {
+            showNotification(result.error || 'Failed to search purchase options', 'error');
+            purchaseResults.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Purchase search error:', error);
+        showNotification('Failed to search purchase options: ' + error.message, 'error');
+        purchaseResults.style.display = 'none';
+    } finally {
+        // Restore button state
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
+
+
+// Display purchase options
+function displayPurchaseOptions(data) {
+    purchaseOptionsList.innerHTML = '';
+    
+    if (data.options && data.options.length > 0) {
+        // Add a header with search info
+        const headerDiv = document.createElement('div');
+        headerDiv.style.cssText = `
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            text-align: center;
+        `;
+        headerDiv.innerHTML = `
+            <div style="font-weight: 500; color: #fff; margin-bottom: 0.25rem;">
+                Search Results for "${data.title}"${data.artist ? ` by ${data.artist}` : ''}
+            </div>
+            <div style="font-size: 0.875rem; color: #888;">
+                Found ${data.options.length} digital download platform${data.options.length !== 1 ? 's' : ''}
+            </div>
+        `;
+        purchaseOptionsList.appendChild(headerDiv);
+        
+        data.options.forEach(option => {
+            const optionElement = document.createElement('div');
+            optionElement.style.cssText = `
+                padding: 1rem;
+                margin-bottom: 0.75rem;
+                background: #222;
+                border: 1px solid #333;
+                border-radius: 6px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: all 0.2s;
+            `;
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.style.cssText = 'flex: 1; margin-right: 1rem;';
+            infoDiv.innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 0.25rem; color: #fff;">${option.name}</div>
+                <div style="font-size: 0.875rem; color: #888; margin-bottom: 0.25rem;">${option.format}</div>
+                ${option.price ? `<div style="font-size: 0.875rem; color: #4ade80; font-weight: 500;">${option.price}</div>` : ''}
+            `;
+            
+            const linkDiv = document.createElement('div');
+            const link = document.createElement('a');
+            link.href = option.url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'Visit Store';
+            link.style.cssText = `
+                background: #4ade80;
+                color: #000;
+                padding: 0.75rem 1.25rem;
+                border-radius: 6px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.875rem;
+                transition: all 0.2s;
+                white-space: nowrap;
+            `;
+            
+            // Add hover effect
+            link.addEventListener('mouseenter', () => {
+                link.style.background = '#22c55e';
+                link.style.transform = 'translateY(-1px)';
+            });
+            
+            link.addEventListener('mouseleave', () => {
+                link.style.background = '#4ade80';
+                link.style.transform = 'translateY(0)';
+            });
+            
+            linkDiv.appendChild(link);
+            optionElement.appendChild(infoDiv);
+            optionElement.appendChild(linkDiv);
+            purchaseOptionsList.appendChild(optionElement);
+        });
+        
+        purchaseResults.style.display = 'block';
+    } else {
+        purchaseOptionsList.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: #666;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔍</div>
+                <div style="font-weight: 500; margin-bottom: 0.5rem;">No purchase options found</div>
+                <div style="font-size: 0.875rem;">Try searching with a different title or artist name</div>
+            </div>
+        `;
+        purchaseResults.style.display = 'block';
+    }
 }
 
 // Initialize

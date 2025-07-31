@@ -1,122 +1,225 @@
-# Troubleshooting Guide
+# ALL-DLP Troubleshooting Guide
 
-## Download Button Freezes
+## 🔧 Common Issues and Solutions
 
-If the download button freezes when clicked, here are the steps to diagnose and fix the issue:
+### "App is Damaged" or "Corrupted" Error on macOS
 
-### 1. Run the Debug Setup Script
-
-First, run the debug setup script to check if everything is properly configured:
-
-```bash
-cd electron-app
-./debug_setup.sh
-```
-
-This script will:
-- Check and create the Python virtual environment
-- Install all required dependencies
-- Verify that yt-dlp, spotdl, and scdl are available
-- Test the API server startup
-- Test the API endpoints
-
-### 2. Common Issues and Solutions
-
-#### Issue: API Server Not Starting
-**Symptoms**: The app starts but downloads don't work, or the API status shows "Not Running"
+**Problem**: The app shows as corrupted or damaged when trying to open it.
 
 **Solutions**:
-- Make sure you're in the `electron-app` directory when running the app
-- Check that the virtual environment exists: `ls venv/`
-- Reinstall dependencies: `pip install -r api/requirements.txt`
-- Check Python version: `python --version` (should be 3.7+)
 
-#### Issue: Missing Download Tools
-**Symptoms**: Downloads fail with "Download failed" or "Downloaded file not found"
+1. **Remove quarantine attributes**:
+   ```bash
+   xattr -cr /Applications/ALL-DLP.app
+   ```
+
+2. **Check Gatekeeper settings**:
+   - Go to System Preferences → Security & Privacy
+   - Click "Allow Anyway" for ALL-DLP
+
+3. **Rebuild locally** (if you have the source code):
+   ```bash
+   npm run build
+   ```
+
+4. **Run compatibility check**:
+   ```bash
+   npm run check-compatibility
+   ```
+
+### Apple Silicon (M1/M2/M3) Compatibility Issues
+
+**Problem**: App built on M3 shows as corrupted on M1.
 
 **Solutions**:
-- Install yt-dlp: `pip install yt-dlp`
-- Install spotdl: `pip install spotdl`
-- Install scdl: `pip install scdl`
-- Verify installation: `yt-dlp --version`, `spotdl --version`, `scdl --version`
 
-#### Issue: Database Errors
-**Symptoms**: App crashes or downloads don't save
+1. **Use universal build settings**:
+   - The app now uses universal ARM64 settings
+   - Rebuild with: `npm run build`
+
+2. **Check architecture compatibility**:
+   ```bash
+   file /Applications/ALL-DLP.app/Contents/MacOS/ALL-DLP
+   ```
+
+3. **Ensure macOS 11.0+** for Apple Silicon compatibility
+
+### API Server Won't Start
+
+**Problem**: The Python API server fails to start.
 
 **Solutions**:
-- Check that the Downloads/bB-downloader directory exists
-- Verify database permissions
-- Delete the database file and restart: `rm ~/Downloads/bB-downloader/downloads.db`
 
-#### Issue: Network/Proxy Issues
-**Symptoms**: Downloads timeout or fail to start
+1. **Check Python environment**:
+   ```bash
+   python3 --version
+   ```
+
+2. **Reinstall dependencies**:
+   ```bash
+   ./setup.sh
+   ```
+
+3. **Check port availability**:
+   ```bash
+   lsof -i :8000
+   ```
+
+4. **Start API manually**:
+   ```bash
+   npm run start-api
+   ```
+
+### FFmpeg Not Found
+
+**Problem**: Downloads fail due to missing FFmpeg.
 
 **Solutions**:
-- Check your internet connection
-- If behind a proxy, configure it in the download tools
-- Try a different URL to test
 
-### 3. Manual Testing
+1. **Install FFmpeg**:
+   ```bash
+   brew install ffmpeg
+   ```
 
-If the debug script passes but the app still freezes, try manual testing:
+2. **Check FFmpeg installation**:
+   ```bash
+   which ffmpeg
+   ffmpeg -version
+   ```
 
-1. Start the API server manually:
+3. **Rebuild with FFmpeg**:
+   ```bash
+   npm run download-ffmpeg
+   npm run build
+   ```
+
+### Download Failures
+
+**Problem**: Downloads fail or show errors.
+
+**Solutions**:
+
+1. **Check internet connection**
+
+2. **Update download tools**:
+   ```bash
+   pip install --upgrade yt-dlp spotdl scdl
+   ```
+
+3. **Check URL format**:
+   - YouTube: `https://www.youtube.com/watch?v=...`
+   - Spotify: `https://open.spotify.com/track/...`
+   - SoundCloud: `https://soundcloud.com/...`
+
+4. **Check available disk space**
+
+### Playlist Download Issues
+
+**Problem**: Playlists download with wrong names or fail.
+
+**Solutions**:
+
+1. **Check playlist URL format**
+2. **Ensure playlist is public** (for Spotify)
+3. **Try downloading individual tracks first**
+4. **Check playlist size** (very large playlists may timeout)
+
+### Build Issues
+
+**Problem**: Local build fails.
+
+**Solutions**:
+
+1. **Clean and rebuild**:
+   ```bash
+   rm -rf node_modules dist venv-*
+   npm install
+   ./setup.sh
+   npm run build
+   ```
+
+2. **Check Node.js version**:
+   ```bash
+   node --version  # Should be 18+ or 20+
+   ```
+
+3. **Check Python version**:
+   ```bash
+   python3 --version  # Should be 3.11+
+   ```
+
+4. **Install system dependencies**:
+   ```bash
+   brew install ffmpeg
+   ```
+
+## 🔍 Diagnostic Commands
+
+### System Information
 ```bash
-cd electron-app
-source venv/bin/activate
-python api/api_server.py
+# Check system architecture
+uname -m
+
+# Check macOS version
+sw_vers
+
+# Check available memory
+system_profiler SPHardwareDataType
 ```
 
-2. In another terminal, test the API:
+### Application Status
 ```bash
-curl http://127.0.0.1:8000/api/health
+# Check if API server is running
+curl http://localhost:8000/api/health
+
+# Check application logs
+tail -f ~/Downloads/all-dlp/all-dlp.log
+
+# Check database
+ls -la ~/.all-dlp/
 ```
 
-3. Test a download:
+### Compatibility Check
 ```bash
-curl -X POST http://127.0.0.1:8000/api/download \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
+# Run full compatibility check
+npm run check-compatibility
+
+# Check specific components
+file api/ffmpeg/ffmpeg
+file dist/all-dlp-api/all-dlp-api
 ```
 
-### 4. Electron App Debugging
+## 📞 Getting Help
 
-To debug the Electron app itself:
+If you're still experiencing issues:
 
-1. Open Developer Tools:
-   - Press `Cmd+Option+I` (macOS) or `Ctrl+Shift+I` (Windows/Linux)
-   - Check the Console tab for errors
+1. **Check the logs**: `~/Downloads/all-dlp/all-dlp.log`
+2. **Run diagnostics**: `npm run check-compatibility`
+3. **Create an issue** on GitHub with:
+   - System information
+   - Error messages
+   - Steps to reproduce
+   - Log files
 
-2. Check the main process logs:
-   - Look for console output in the terminal where you started the app
-   - Check for API server startup messages
+## 🔄 Reset and Reinstall
 
-3. Test IPC communication:
-   - In the Developer Tools console, try: `window.electronAPI.checkApiStatus()`
+If all else fails:
 
-### 5. Recent Fixes
+1. **Remove the app**:
+   ```bash
+   rm -rf /Applications/ALL-DLP.app
+   rm -rf ~/.all-dlp
+   rm -rf ~/Downloads/all-dlp
+   ```
 
-The latest version includes these fixes for freezing issues:
+2. **Clean build environment**:
+   ```bash
+   rm -rf node_modules dist venv-*
+   ```
 
-- **Non-blocking downloads**: Downloads now run in background threads
-- **Better error handling**: More detailed error messages and timeouts
-- **API server readiness check**: The app waits for the API server to be ready
-- **Timeout protection**: 30-second timeout on download requests
-
-### 6. Still Having Issues?
-
-If you're still experiencing problems:
-
-1. Check the console output for specific error messages
-2. Try with a simple YouTube URL first
-3. Make sure all dependencies are up to date
-4. Check if the issue occurs with all platforms (YouTube, Spotify, SoundCloud) or just one
-
-### 7. Log Files
-
-The app creates logs in:
-- Main process: Terminal output where you started the app
-- API server: Console output in the main process
-- Database: `~/Downloads/bB-downloader/downloads.db`
-
-Check these for detailed error information. 
+3. **Reinstall from scratch**:
+   ```bash
+   npm install
+   ./setup.sh
+   npm run build
+   ``` 
