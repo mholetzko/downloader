@@ -310,10 +310,58 @@ function createHTMLFiles() {
     <meta charset="utf-8">
     <title>Welcome to ALL-DLP</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 40px; }
-        h1 { color: #007AFF; }
-        .feature { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px; }
-        .warning { color: #FF3B30; font-weight: bold; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            margin: 40px; 
+            background-color: #1e1e1e;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        h1 { 
+            color: #007AFF; 
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        h2 { 
+            color: #007AFF; 
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        p { 
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .feature { 
+            margin: 12px 0; 
+            padding: 15px; 
+            background: #2d2d2d; 
+            border-radius: 8px;
+            border-left: 4px solid #007AFF;
+            font-size: 14px;
+        }
+        .warning { 
+            color: #FF6B6B; 
+            font-weight: bold;
+            background: #3d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #FF6B6B;
+            margin: 20px 0;
+        }
+        ul {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        li {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        strong {
+            color: #007AFF;
+        }
     </style>
 </head>
 <body>
@@ -354,9 +402,68 @@ function createHTMLFiles() {
     <meta charset="utf-8">
     <title>ALL-DLP License Agreement</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 40px; }
-        h1 { color: #007AFF; }
-        .license-text { background: #f5f5f5; padding: 20px; border-radius: 5px; max-height: 400px; overflow-y: auto; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            margin: 40px; 
+            background-color: #1e1e1e;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        h1 { 
+            color: #007AFF; 
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        h2 { 
+            color: #007AFF; 
+            font-size: 20px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        h3 { 
+            color: #007AFF; 
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        p { 
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .license-text { 
+            background: #2d2d2d; 
+            padding: 25px; 
+            border-radius: 8px; 
+            max-height: 400px; 
+            overflow-y: auto;
+            border: 1px solid #404040;
+        }
+        ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        strong {
+            color: #007AFF;
+        }
+        /* Scrollbar styling for the license text */
+        .license-text::-webkit-scrollbar {
+            width: 8px;
+        }
+        .license-text::-webkit-scrollbar-track {
+            background: #1e1e1e;
+            border-radius: 4px;
+        }
+        .license-text::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 4px;
+        }
+        .license-text::-webkit-scrollbar-thumb:hover {
+            background: #505050;
+        }
     </style>
 </head>
 <body>
